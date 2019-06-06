@@ -4,7 +4,7 @@ MRAppMaster：负责整个程序的过程调度及状态协调
 MapTask：负责map阶段的整个数据处理流程
 ReduceTask：负责reduce阶段的整个数据处理流程
 
-##具体步骤:
+## 具体步骤:
  * Map阶段2个步骤
 
 
@@ -32,3 +32,22 @@ map阶段分为2个步骤
 shuffle阶段4个步骤
 
 reduce阶段分为2个步骤
+
+
+
+### Jar包的运行方式:
+
+```properties
+# 在虚拟机hdfs中创建目录 
+hdfs dfs -mkdir -p /myText/wordCount_day03/input 
+
+# 并且将wordcount.txt上传到input目录下
+hdfs dfs -put /myText/wordCount_day03/input 
+
+# 运行jar包 复制主函数入口
+hadoop jar wordCount.jar com.JadePenG.mr.WordCountJobMain
+
+# 会有一个InterruptedException异常报错, 属于正常情况
+
+```
+
