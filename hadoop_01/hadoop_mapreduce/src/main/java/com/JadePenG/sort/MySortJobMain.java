@@ -21,7 +21,7 @@ public class MySortJobMain extends Configured implements Tool {
 
         job.setInputFormatClass(TextInputFormat.class);
         TextInputFormat.addInputPath(job,
-                new Path("H:\\~Big Data\\Employment\\03_大数据阶段\\day04_MapReduce增强\\资料\\排序\\input"));
+                new Path("hadoop_01\\hadoop_mapreduce\\src\\main\\resources\\sort\\input"));
 
         //2. 自定义mapper逻辑
         job.setMapperClass(MySortMapper.class);
@@ -36,7 +36,7 @@ public class MySortJobMain extends Configured implements Tool {
         //8. 指定输出
         job.setOutputFormatClass(TextOutputFormat.class);
         TextOutputFormat.setOutputPath(job,
-                new Path("H:\\~Big Data\\Employment\\03_大数据阶段\\day04_MapReduce增强\\资料\\排序\\output"));
+                new Path("H:\\output"));
 
         //等待完成
         boolean b = job.waitForCompletion(true);
