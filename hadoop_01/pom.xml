@@ -11,6 +11,7 @@
     <modules>
         <module>hadoop_zookeeper</module>
         <module>hadoop_hdfs_mr</module>
+        <module>hadoop_mapreduce</module>
     </modules>
 
 
