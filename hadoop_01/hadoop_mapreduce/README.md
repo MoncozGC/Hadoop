@@ -11,6 +11,16 @@ partition包: 需求: 按照数据第6个字段，将原有存在与一个文件
 7	0	2	2017-07-31 23:20:49	2170780	12	1+2+9=12	小,双
 ```
 
+```properties
+# 集群运行: 
+# 上传resource--partition下的jar包到服务器中
+	hadoop jar com.JadePenG.partition.MyPartitionJobMain [输入路径]  [输出路径]
+
+# 上传resource--partition--input下的文件到hdfs中
+	hdfs dfs -mkdir -p [文件夹输入路径]
+	hdfs dfs -put partition.csv [文件夹输入路径]
+```
+
 
 
 sort包: 排序  第一列按照字典顺序进行排列，第一列相同的时候，第二列按照升序进行排列
