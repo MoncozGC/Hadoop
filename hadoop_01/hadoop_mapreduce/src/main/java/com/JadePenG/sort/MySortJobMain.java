@@ -36,12 +36,11 @@ public class MySortJobMain extends Configured implements Tool {
         //8. 指定输出
         job.setOutputFormatClass(TextOutputFormat.class);
         TextOutputFormat.setOutputPath(job,
-                new Path("H:\\output"));
+                new Path("hadoop_01\\hadoop_mapreduce\\src\\main\\resources\\sort\\output"));
 
         //等待完成
         boolean b = job.waitForCompletion(true);
 
-        System.out.println(Job.JobState.DEFINE);
 
         return b ? 0 : 1;
     }
