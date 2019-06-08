@@ -8,18 +8,19 @@ import java.io.IOException;
 
 /**
  * 第二步: 自定义map逻辑
- *
+ * <p>
  * extends Mapper<Long, String, String, Long> 不可以这样写泛型
  */
-public class WordCountMapper extends Mapper<LongWritable, Text, Text, LongWritable>{
+public class WordCountMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
 
     private Text wordText = new Text();
     private LongWritable score = new LongWritable(1);
 
     /**
-     *  每接收一行数据就执行一次map方法
-     * @param key
-     * @param value
+     * 每接收一行数据就执行一次map方法
+     *
+     * @param key     磁盘中的key
+     * @param value   磁盘中的value
      * @param context
      * @throws IOException
      * @throws InterruptedException
@@ -45,7 +46,7 @@ public class WordCountMapper extends Mapper<LongWritable, Text, Text, LongWritab
         for (String word : wordAdd) {
             wordText.set(word);
             //3. 发送到下游
-            context.write(wordText, score );
+            context.write(wordText, score);
         }
 
 
