@@ -11,12 +11,13 @@ import java.io.IOException;
  */
 public class WordCountReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
 
-    private LongWritable conutScore = new LongWritable();
+    private LongWritable countScore = new LongWritable();
 
     /**
      * 每接收一行数据就执行reduce方法
-     * @param key
-     * @param values
+     *
+     * @param key     Mapper发送到Reducer中的key
+     * @param values  Mapper发送到Reducer中的value
      * @param context
      * @throws IOException
      * @throws InterruptedException
@@ -38,13 +39,12 @@ public class WordCountReducer extends Reducer<Text, LongWritable, Text, LongWrit
         //2. 处理数据
         long count = 0;
         for (LongWritable value : values) {
-            count +=value.get();
-
+            count += value.get();
         }
-        conutScore.set(count);
+        countScore.set(count);
         //3.发送到下游
 
-        context.write(key, conutScore);
+        context.write(key, countScore);
     }
 }
 
