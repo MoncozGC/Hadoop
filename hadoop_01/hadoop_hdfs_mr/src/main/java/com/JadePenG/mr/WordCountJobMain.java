@@ -32,8 +32,12 @@ public class WordCountJobMain extends Configured implements Tool {
 
         //指定待处理的文件格式
         job.setInputFormatClass(TextInputFormat.class);
+        //集群文件读取位置
+        /*TextInputFormat.addInputPath(job,
+                new Path("/myText/wordCount_day03/input"));*/
+
         TextInputFormat.addInputPath(job,
-                new Path("/myText/wordCount_day03/input"));
+                new Path("hadoop_01\\hadoop_hdfs_mr\\src\\main\\resources\\WordCount\\input"));
         /*
          * 1. map阶段
          *   指定输入
@@ -62,8 +66,11 @@ public class WordCountJobMain extends Configured implements Tool {
          * */
         job.setOutputFormatClass(TextOutputFormat.class);
         //指定输出的路径path, 一定不能已经存在, 否则会报错
+        //集群输出位置
+        /*TextOutputFormat.setOutputPath(job,
+                new Path("/myText/wordCount_day03/Output"));*/
         TextOutputFormat.setOutputPath(job,
-                new Path("/myText/wordCount_day03/Output"));
+                new Path("hadoop_01\\hadoop_hdfs_mr\\src\\main\\resources\\WordCount\\output"));
 
         boolean b = job.waitForCompletion(true);
 
