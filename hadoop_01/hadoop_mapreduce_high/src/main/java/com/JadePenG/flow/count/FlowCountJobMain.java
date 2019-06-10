@@ -31,7 +31,7 @@ public class FlowCountJobMain extends Configured implements Tool {
         //1.指定输入
         job.setInputFormatClass(TextInputFormat.class);
         TextInputFormat.addInputPath(job,
-                new Path("H:\\~Big Data\\Employment\\03_大数据阶段\\day04_MapReduce增强\\资料\\流量统计\\input"));
+                new Path("hadoop_01\\hadoop_mapreduce_high\\src\\main\\resources\\com\\JadePenG\\flow\\count\\input"));
 
         //2.自定义map逻辑
         job.setMapperClass(FlowCountMapper.class);
@@ -56,7 +56,7 @@ public class FlowCountJobMain extends Configured implements Tool {
 
         //8.指定输出
         job.setOutputFormatClass(TextOutputFormat.class);
-        TextOutputFormat.setOutputPath(job, new Path("H:\\~Big Data\\Employment\\03_大数据阶段\\day04_MapReduce增强\\资料\\流量统计\\output_count"));
+        TextOutputFormat.setOutputPath(job, new Path("hadoop_01\\hadoop_mapreduce_high\\src\\main\\resources\\com\\JadePenG\\flow\\count\\output_count"));
 
         //等待完成
         boolean b = job.waitForCompletion(true);
