@@ -16,10 +16,8 @@ partition包: 需求: 按照数据第6个字段，将原有存在与一个文件
 # 上传resource--partition下的jar包到服务器中
 	hadoop jar com.JadePenG.partition.MyPartitionJobMain [输入路径]  [输出路径]
 
-# 上传resource--partition--input下的文件到hdfs中
-	hdfs dfs -mkdir -p [文件夹输入路径]
-	hdfs dfs -put partition.csv [文件夹输入路径]
-```
+com.JadePenG.pcom.JadePenG.partition	hdfs dfs -mkdir -p [文件夹输入路径]
+	hdfs dfs -put partition.csv [文件夹com.JadePenG.partition
 
 
 

@@ -51,6 +51,8 @@ public class SortBean implements WritableComparable<SortBean> {
         *   前面等于后面，返回0
             前面大于后面，返回正值
             前面小于后面，返回负值
+
+            a == b ? 0 : (!a ? -1 : 1);
         * */
         int compare = this.first.compareTo(o.getFirst());
         if (0 == compare) {
