@@ -11,6 +11,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
+ * 以JavaBean的upFlow(上行流量总和)为准, 进行倒序排序
  * 需求: 统计每个手机号的上行流量总和，下行流量总和，上行总流量之和，下行总流量之和
  * 1. 整合mapReduce程序的3阶段8步骤
  * 2. 主程序入口
