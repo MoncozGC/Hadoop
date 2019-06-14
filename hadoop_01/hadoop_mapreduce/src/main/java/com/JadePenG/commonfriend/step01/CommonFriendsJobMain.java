@@ -11,7 +11,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * 需求: 我们要求哪两个用户，两两之间，存在共同好友？(哪些用户之间存在共同好友。)
+ * 需求: 求出哪些人两两之间有共同好友，及他俩的共同好友都有谁？
  *
  * @author Peng
  * @Description

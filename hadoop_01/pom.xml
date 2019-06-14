@@ -13,6 +13,7 @@
         <module>hadoop_hdfs_mr</module>
         <module>hadoop_mapreduce</module>
         <module>hadoop_mapreduce_high</module>
+        <module>hadoop_sshexec</module>
     </modules>
 
 

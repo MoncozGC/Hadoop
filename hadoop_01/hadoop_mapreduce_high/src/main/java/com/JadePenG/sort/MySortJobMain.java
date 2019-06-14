@@ -10,6 +10,9 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+/**
+ * 需求: 第一列按照字典顺序进行排列，第一列相同的时候，第二列按照升序进行排列
+ */
 public class MySortJobMain extends Configured implements Tool {
 
 
