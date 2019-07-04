@@ -825,13 +825,13 @@ if (window.google && window.google.maps) {
                             if (e.length > 0 && options.start) {
                                 options.start(e[e.length - 1]);
                             }
-                            if (e.length > 0 && options.step) {
+                            if (e.length > 0 && options.step04) {
                                 var route = e[e.length - 1];
                                 if (route.legs.length > 0) {
                                     var steps = route.legs[0].steps;
                                     for (var i = 0, step; step = steps[i]; i++) {
                                         step.step_number = i;
-                                        options.step(step, (route.legs[0].steps.length - 1));
+                                        options.step04(step, (route.legs[0].steps.length - 1));
                                     }
                                 }
                             }
@@ -845,7 +845,7 @@ if (window.google && window.google.maps) {
                         var steps = options.route.legs[0].steps;
                         for (var i = 0, step; step = steps[i]; i++) {
                             step.step_number = i;
-                            options.step(step);
+                            options.step04(step);
                         }
                     }
                 }
@@ -861,7 +861,7 @@ if (window.google && window.google.maps) {
                             if (e.length > 0 && options.start) {
                                 options.start(e[e.length - 1]);
                             }
-                            if (e.length > 0 && options.step) {
+                            if (e.length > 0 && options.step04) {
                                 var route = e[e.length - 1];
                                 if (route.legs.length > 0) {
                                     var steps = route.legs[0].steps;
@@ -873,7 +873,7 @@ if (window.google && window.google.maps) {
                                             strokeOpacity: options.strokeOpacity,
                                             strokeWeight: options.strokeWeight
                                         });
-                                        options.step(step, (route.legs[0].steps.length - 1));
+                                        options.step04(step, (route.legs[0].steps.length - 1));
                                     }
                                 }
                             }
@@ -893,7 +893,7 @@ if (window.google && window.google.maps) {
                                 strokeOpacity: options.strokeOpacity,
                                 strokeWeight: options.strokeWeight
                             });
-                            options.step(step);
+                            options.step04(step);
                         }
                     }
                 }

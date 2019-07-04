@@ -3158,7 +3158,7 @@
         },
         run: function (e) {
             var t, n = rr.propHooks[this.prop];
-            return this.pos = t = this.options.duration ? x.easing[this.easing](e, this.options.duration * e, 0, 1, this.options.duration) : e, this.now = (this.end - this.start) * t + this.start, this.options.step && this.options.step.call(this.elem, this.now, this), n && n.set ? n.set(this) : rr.propHooks._default.set(this), this
+            return this.pos = t = this.options.duration ? x.easing[this.easing](e, this.options.duration * e, 0, 1, this.options.duration) : e, this.now = (this.end - this.start) * t + this.start, this.options.step04 && this.options.step04.call(this.elem, this.now, this), n && n.set ? n.set(this) : rr.propHooks._default.set(this), this
         }
     }, rr.prototype.init.prototype = rr.prototype, rr.propHooks = {
         _default: {
@@ -3167,7 +3167,7 @@
                 return null == e.elem[e.prop] || e.elem.style && null != e.elem.style[e.prop] ? (t = x.css(e.elem, e.prop, ""), t && "auto" !== t ? t : 0) : e.elem[e.prop]
             },
             set: function (e) {
-                x.fx.step[e.prop] ? x.fx.step[e.prop](e) : e.elem.style && (null != e.elem.style[x.cssProps[e.prop]] || x.cssHooks[e.prop]) ? x.style(e.elem, e.prop, e.now + e.unit) : e.elem[e.prop] = e.now
+                x.fx.step04[e.prop] ? x.fx.step04[e.prop](e) : e.elem.style && (null != e.elem.style[x.cssProps[e.prop]] || x.cssHooks[e.prop]) ? x.style(e.elem, e.prop, e.now + e.unit) : e.elem[e.prop] = e.now
             }
         }
     }, rr.propHooks.scrollTop = rr.propHooks.scrollLeft = {

@@ -74,7 +74,7 @@
 		        	$step = $(this);
 
 		        	$step
-		        	.addClass('step')
+		        	.addClass('step04')
 		        	.attr('id', id + '-step-' + index)
 		        	.append('<p id="' + id + '-buttons-' + index + '" class="' + id + '-buttons"/>');
 
