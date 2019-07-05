@@ -1,5 +1,6 @@
 package com.air.antispider.stream.dataprocess.businessprocess
 
+import com.air.antispider.stream.common.bean.AccessLog
 import com.air.antispider.stream.common.util.jedis.PropertiesUtil
 import org.apache.spark.rdd.RDD
 import org.json4s.DefaultFormats
@@ -14,7 +15,7 @@ import redis.clients.jedis.JedisCluster
 object BusinessProcess {
 
 
-  def linkCount(logRDD: RDD[String], jedis: JedisCluster): Unit = {
+  def linkCount(logRDD: RDD[AccessLog], jedis: JedisCluster): Unit = {
     /**
       * 实现思路:
       * 1. 统计各个链路的数据采集量
@@ -23,19 +24,21 @@ object BusinessProcess {
       **/
     //1. 统计各个链路的数据采集数
     val serverCount: RDD[(String, Int)] = logRDD.map(record => {
-      val filed = record.split("#CS#")
+      /*val filed = record.split("#CS#")
       //获取ip
       val server_addr = filed(9)
-      (server_addr, 1)
+      (server_addr, 1)*/
+      (record.serverAddr, 1)
     }).reduceByKey(_ + _)
 
     //2. 将各个链路的活跃连接数
-    val activeNum: RDD[(String, String)] = logRDD.map(record => {
-      val filed = record.split("#CS#")
-      val server_addr = filed(9)
-      //获取活跃连接数, 但是需要获取最新的活跃连接数
-      val connection_num = filed(11)
-      (server_addr, connection_num)
+    val activeNum: RDD[(String, Int)] = logRDD.map(record => {
+      /* val filed = record.split("#CS#")
+       val server_addr = filed(9)
+       //获取活跃连接数, 但是需要获取最新的活跃连接数
+       val connection_num = filed(11)
+       (server_addr, connection_num)*/
+      (record.serverAddr, record.connectionsActive)
       // x: 临时累加值  y: 最新的活跃连接数 需要与指定的值进行比较的数据
     }).reduceByKey((x, y) => y)
 
