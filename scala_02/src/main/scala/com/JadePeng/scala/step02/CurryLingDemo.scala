@@ -9,7 +9,7 @@ object CurrylingDemo {
   /**
     * 普通的方法
     *
-    * @param args
+    * @param
     */
   def add(x: Int, y: Int) = {
     x + y
