@@ -76,7 +76,7 @@ object DataProcessLaunch {
       //TODO 3:链路统计 要写入redis中所以传一个redis
       BusinessProcess.linkCount(rdd, jedis)
 
-
+      accessLogRDD.foreach(println(_))
 
       //释放资源
       rdd.unpersist()
