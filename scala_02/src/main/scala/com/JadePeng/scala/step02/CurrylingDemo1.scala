@@ -4,7 +4,7 @@ package com.JadePeng.scala.step02
   * 柯里化函数
   * 闭包
   */
-object CurrylingDemo {
+object CurrylingDemo1 {
 
   /**
     * 普通的方法
