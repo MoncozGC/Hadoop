@@ -1,9 +1,3 @@
----
-
-typora-copy-images-to: pic
-typora-root-url: pic
----
-
 
 # 反爬系统
 
@@ -255,7 +249,7 @@ end
 
 1：将kafka集成包上传到openresty/lualib/kafka目录
 
-![02.01_lua集成kafka.png](/02.01_lua集成kafka.png)
+![02.01_lua集成kafka.png](pic/02.01_lua集成kafka.png)
 
 2：配置nginx.conf
 
