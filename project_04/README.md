@@ -309,7 +309,7 @@ end
 
 #### kafka-manager的安装
 
-![02.02_kafka-Manage.png-Manage.png](/02.02_kafka-Manage.png)
+![02.02_kafka-Manage.png-Manage.png](pic/02.02_kafka-Manage.png)
 
 ### kafka消费数据的两种方式的区别
 
