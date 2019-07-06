@@ -42,4 +42,7 @@ class BookRequestData {
   var flightNo = scala.collection.mutable.ListBuffer[String]()
   //仓位级别
   var cabin = scala.collection.mutable.ListBuffer[String]()
+
+  override def toString = s"QueryRequestData($flightType, $travelType, $bookTime, $bookUserId, $bookUnUserId, $bookIp," +
+    s" $depCity, $arrCity, $flightDate, $psgName, $psgType, $idType, $idCard, $travelType)"
 }
