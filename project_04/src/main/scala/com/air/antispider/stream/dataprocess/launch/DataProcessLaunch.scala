@@ -1,9 +1,9 @@
 package com.air.antispider.stream.dataprocess.launch
 
-import com.air.antispider.stream.common.bean.{AccessLog, RequestType}
+import com.air.antispider.stream.common.bean.{AccessLog, AnalyzeRule, BookRequestData, QueryRequestData, RequestType}
 import com.air.antispider.stream.common.util.jedis.{JedisConnectionUtil, PropertiesUtil}
 import com.air.antispider.stream.dataprocess.businessprocess._
-import com.air.antispider.stream.dataprocess.constants.TravelTypeEnum
+import com.air.antispider.stream.dataprocess.constants.{BehaviorTypeEnum, TravelTypeEnum}
 import kafka.serializer.StringDecoder
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -81,7 +81,7 @@ object DataProcessLaunch {
     val filterRuleList: ArrayBuffer[String] = AnalyzerRuleDB.queryFilterRule()
     //将读取到的规则信息进行广播
     //这个关键字表示线程安全，会被多个线程所使用
-    @volatile var filterRuleRef = sc.broadcast(filterRuleList)
+    @volatile var filterRuleRef: Broadcast[ArrayBuffer[String]] = sc.broadcast(filterRuleList)
 
     /**
       * 数据分类的思路:
@@ -95,6 +95,24 @@ object DataProcessLaunch {
     //这个关键字表示线程安全，会被多个线程所使用
     @volatile var ruleMapRef: Broadcast[mutable.HashMap[String, ArrayBuffer[String]]] = sc.broadcast(ruleMapList)
 
+    /**
+      * 数据解析的思路:
+      * 1. 读取数据库配置的数据解析规则信息
+      * 2. 将读取到的数据解析规则广播到executor节点
+      * 3. 监视广播变量是否发生了改变, 如果一旦发生了改变, 那么需要重新广播
+      * 4. 对rdd的数据的请求地址进行正则表达式的匹配, 如果匹配上了进行数据的解析
+      */
+    //查询规则数据
+    val queryRuleList: List[AnalyzeRule] = AnalyzerRuleDB.queryRule(BehaviorTypeEnum.Query.id)
+    //预定规则数据
+    val bookRuleList: List[AnalyzeRule] = AnalyzerRuleDB.queryRule(BehaviorTypeEnum.Book.id)
+    //将查询规则和预定规则放到map对象中进行广播
+    val queryAndBookMap: mutable.HashMap[String, List[AnalyzeRule]] = new mutable.HashMap[String, List[AnalyzeRule]]()
+    queryAndBookMap.put("QueryRule", queryRuleList)
+    queryAndBookMap.put("BookRule", bookRuleList)
+    //一起广播出去
+    @volatile var queryAndBookRuleRef: Broadcast[mutable.HashMap[String, List[AnalyzeRule]]] = sc.broadcast(queryAndBookMap)
+
 
     //获取jedis连接
     val jedis = JedisConnectionUtil.getJedisCluster
@@ -106,6 +124,10 @@ object DataProcessLaunch {
     lines.foreachRDD(foreachFunc = rdd => {
       //监视过滤规则广播变量是否发生了改变
       filterRuleRef = BroadcastProcess.monitorFilterRule(sc, filterRuleRef, jedis)
+      //监视数据分类规则广播是否发生了改变
+      ruleMapRef = BroadcastProcess.monitorClassifyRule(sc, ruleMapRef, jedis)
+      //监视数据解析规则广播是否发生了改变
+      queryAndBookRuleRef = BroadcastProcess.monitorQueryAndBookRule(sc, queryAndBookRuleRef, jedis)
 
       //TODO 1. 首先使用缓存对rdd进行存储，如果rdd在我们的job中多次反复的使用的话，要加上缓存，提高执行效率
       //将数据优先放到内存中, 能存就存,不能存就不存了
@@ -132,12 +154,29 @@ object DataProcessLaunch {
         record.httpCookie = EncryptionData.encryptionID(record.httpCookie)
 
         //TODO 6. 数据分类打标签(国内\国际 查询\预定) 来一条数据读取它的请求地址然后根据分类规则进行匹配, 匹配上了就打标签
-        val requestLabel: RequestType = RequestTypeClassify.classifyByRequest(record, ruleMapRef.value)
+        val requestTypeLabel: RequestType = RequestTypeClassify.classifyByRequest(record, ruleMapRef.value)
 
         //TODO 7. 单程 往返标签
         val travelTypeLabel: TravelTypeEnum.Value = TravelTypeClassify.classifyByReferer(record.httpReferer)
 
-        travelTypeLabel
+        //TODO 8. 数据的解析
+
+        //  获取查询的解析规则  QueryRule是传入的key  getOrElse返回指定key相关的value值, 如果没有就返回默认值
+        val queryRules: List[AnalyzeRule] = queryAndBookRuleRef.value.getOrElse("QueryRule", null)
+        //  获取预定的解析规则
+        val bookRules: List[AnalyzeRule] = queryAndBookRuleRef.value.getOrElse("BookRule", null)
+        //解析查询数据
+        val queryRequestData: Option[QueryRequestData] = AnalyzeQueryRequest.analyzeQueryRequest(
+          //分类标签, 请求的方法, 请求头字段, 请求的连接, 请求参数, 单程 往返标签, 查询的解析规则
+          requestTypeLabel, record.requestMethod, record.contentType,
+          record.request, record.requestBody, travelTypeLabel, queryRules)
+        //解析预定数据
+        val bookRequestData: Option[BookRequestData] = AnalyzeBookRequest.analyzeBookRequest(
+          //------bookRules: 预定的解析规则
+          requestTypeLabel, record.requestMethod, record.contentType,
+          record.request, record.requestBody, travelTypeLabel, bookRules)
+
+        bookRequestData
 
       })
       processedRDD.foreach(println(_))
