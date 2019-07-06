@@ -1,9 +1,7 @@
-package com.air.antispider.stream.dataprocess.launch
+package com.air.antispider.stream.dataprocess.businessprocess
 
 import com.air.antispider.stream.common.bean.{AccessLog, RequestType}
-import com.air.antispider.stream.dataprocess.constants.BehaviorTypeEnum.BehaviorTypeEnum
 import com.air.antispider.stream.dataprocess.constants.{BehaviorTypeEnum, FlightTypeEnum}
-import com.air.antispider.stream.dataprocess.constants.FlightTypeEnum.FlightTypeEnum
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
