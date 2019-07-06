@@ -29,6 +29,7 @@ object BusinessProcess {
       val server_addr = filed(9)
       (server_addr, 1)*/
       (record.serverAddr, 1)
+      //聚合
     }).reduceByKey(_ + _)
 
     //2. 将各个链路的活跃连接数
@@ -56,7 +57,7 @@ object BusinessProcess {
 
       //获取到链路统计的key  为了防止不一直写入到一个key中,在key的名字上加一个时间戳
       val keyName = PropertiesUtil.getStringByKey("cluster.key.monitor.linkProcess", "jedisConfig.properties") + System.currentTimeMillis().toString
-      //获取链路统计的超时时间
+      //获取链路统计的超时时间 设置的过期时间, 否则redis中会有大量的key
       val expTime = PropertiesUtil.getStringByKey("cluster.exptime.monitor", "jedisConfig.properties").toInt
 
       //将写入redis的数据转换成String类型
