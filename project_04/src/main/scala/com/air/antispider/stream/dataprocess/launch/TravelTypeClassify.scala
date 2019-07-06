@@ -9,6 +9,7 @@ import com.air.antispider.stream.dataprocess.constants.TravelTypeEnum
   */
 object TravelTypeClassify {
   /**
+    * 对数据进行单程或者往返打标签
     *
     * @param httpReferer url
     */
