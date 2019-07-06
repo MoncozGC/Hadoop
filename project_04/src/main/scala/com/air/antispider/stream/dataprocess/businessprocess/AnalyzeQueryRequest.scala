@@ -17,6 +17,7 @@ import org.xml.sax.InputSource
   */
 object AnalyzeQueryRequest {
   val logger = Logger.getLogger("AnalyzeRequest")
+
   /**
     * 不同类型数据，根据不同解析规则进行解析
     * 03/Jun/2019:21:41:25 -0800#CS#POST /B2C40/query/jaxb/direct/query.ao HTTP/1.1#CS#POST#CS#application/x-www-form-urlencoded; charset=UTF-8
@@ -79,7 +80,7 @@ object AnalyzeQueryRequest {
     }
 
     //封装操作类型和航线类型
-    if (queryRequestData != null) {
+    if (!queryRequestData.isEmpty) {
       queryRequestData.flightType = requestTypeLabel.behaviorType.id
       queryRequestData.travelType = travelType.id
       Some(queryRequestData)
@@ -87,6 +88,7 @@ object AnalyzeQueryRequest {
       None
     }
   }
+
   /**
     * 解析通过json方式提交的其他形式参数
     *
@@ -121,6 +123,7 @@ object AnalyzeQueryRequest {
     //返回数据
     queryRequestData
   }
+
   /**
     * 测试规则数据
     *
@@ -218,7 +221,6 @@ object AnalyzeQueryRequest {
   }
 
 
-
   /**
     * 解析普通Form表单方式提交的参数
     * (application/x-www-form-urlencoded)
@@ -243,7 +245,6 @@ object AnalyzeQueryRequest {
 
     getQueryRequestFromMap(queryRequestData, paramMap, matchedRule)
   }
-
 
 
   /**
@@ -321,7 +322,6 @@ object AnalyzeQueryRequest {
   }
 
 
-
   /**
     * 通用查询参数Json字符串数据提取方法
     *
@@ -330,7 +330,7 @@ object AnalyzeQueryRequest {
     * @param matchedRule
     */
   def extractGeneralJsonData(json: String, queryRequestData: QueryRequestData, matchedRule: AnalyzeRule): Unit = {
-  //json串不为空
+    //json串不为空
     if (!json.trim.isEmpty) {
       //解析json串, 将body中传递的json字符串进行解析成json对象
       val jsonPathParser: JsonPathParser = JsonPathParser(json)
@@ -382,6 +382,7 @@ object AnalyzeQueryRequest {
     }
 
   }
+
   def main(args: Array[String]) {
     val json = "{\"depcity\":\"CAN\", \"arrcity\":\"WUH\", \"flightdate\":\"20180220\", \"adultnum\":\"1\", \"childnum\":\"0\", \"infantnum\":\"0\", \"cabinorder\":\"0\", \"airline\":\"1\", \"flytype\":\"0\", \"international\":\"0\", \"action\":\"0\", \"segtype\":\"1\", \"cache\":\"0\", \"preUrl\":\"\", \"isMember\":\"\"}"
     val jsonPathParser = JsonPathParser(json)
