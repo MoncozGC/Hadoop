@@ -3,17 +3,17 @@ package com.air.antispider.stream.common.bean
 import com.air.antispider.stream.dataprocess.constants.FlightTypeEnum
 
 /**
- * 查询请求参数集
- * 通过GET/POST提交的通过解析URL参数或解析FORM表单或解析FORM表单中的JSON获取
- * 该对象通过JSON形式传输
- */
+  * 查询请求参数集
+  * 通过GET/POST提交的通过解析URL参数或解析FORM表单或解析FORM表单中的JSON获取
+  * 该对象通过JSON形式传输
+  */
 class QueryRequestData {
 
   //是有解析成功存有有效数据
   var isEmpty = true
 
   //航班类型
-  var flightType:Int = FlightTypeEnum.Other.id
+  var flightType: Int = FlightTypeEnum.Other.id
 
   //以下参数通过请求原始数据获取，不需要从表单数据中解析
   //订票时间
@@ -46,4 +46,5 @@ class QueryRequestData {
   //是否往返 - 国内通过httpRefer识别，国际通过Post表单数据
   var travelType = -1
 
+  override def toString = s"QueryRequestData($isEmpty, $flightType, $queryTime, $queryUserId, $queryUnUserId, $queryIp, $depCity, $arrCity, $flightDate, $adultNum, $childNum, $infantNum, $country, $travelType)"
 }
