@@ -1,15 +1,18 @@
 package com.air.antispider.stream.dataprocess.launch
 
-import com.air.antispider.stream.common.bean.AccessLog
+import com.air.antispider.stream.common.bean.{AccessLog, RequestType}
 import com.air.antispider.stream.common.util.jedis.{JedisConnectionUtil, PropertiesUtil}
 import com.air.antispider.stream.dataprocess.businessprocess._
+import com.air.antispider.stream.dataprocess.constants.TravelTypeEnum
 import kafka.serializer.StringDecoder
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -24,7 +27,7 @@ object DataProcessLaunch {
   def main(args: Array[String]): Unit = {
     //当应用程序停止的时候，会将当前批次的数据处理完成再停止（优雅停止）
     System.setProperty("spark.streaming.stopGracefullyOnShutdown", "true")
-    //每次拉取1000条数据，1000*分区数*采样时间=拉取数据量
+    //每次拉取的数据，1000*分区数*采样时间=拉取数据量
     System.setProperty("spark.streaming.kafka.maxRatePerPartition", "1000")
 
     //创建sparkconf对象
@@ -53,7 +56,8 @@ object DataProcessLaunch {
   /**
     * 具体的业务处理类
     * 实现：链路统计、数据清洗、脱敏、拆分、封装、解析、历史爬虫判断、结构化、数据推送等需求
-    *
+    * 26/Jun/2019:03:42:54 -0800#CS#POST /B2C40/query/jaxb/direct/query.ao HTTP/1.1#CS#POST#CS#application/x-www-form-urlencoded; charset=UTF-8#CS#json=%7B%22depcity%22%3A%22CAN%22%2C+%22arrcity%22%3A%22WUH%22%2C+%22flightdate%22%3A%2220180220%22%2C+%22adultnum%22%3A%221%22%2C+%22childnum%22%3A%220%22%2C+%22infantnum%22%3A%220%22%2C+%22cabinorder%22%3A%220%22%2C+%22airline%22%3A%221%22%2C+%22flytype%22%3A%220%22%2C+%22international%22%3A%220%22%2C+%22action%22%3A%220%22%2C+%22segtype%22%3A%221%22%2C+%22cache%22%3A%220%22%2C+%22preUrl%22%3A%22%22%2C+%22isMember%22%3A%22%22%7D#CS#http://b2c.csair.com/B2C40/modules/bookingnew/main/flightSelectDirect.html?t=S&c1=CAN&c2=WUH&d1=2019-07-02&at=1&ct=0&it=0#CS#192.168.180.1#CS#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36#CS#2019-06-26T03:42:54-08:00#CS#192.168.180.111#CS#JSESSIONID=782121159357B98CA6112554CF44321E; sid=b5cc11e02e154ac5b0f3609332f86803; aid=8ae8768760927e280160bb348bef3e12; identifyStatus=N; userType4logCookie=M; userId4logCookie=13818791413; useridCookie=13818791413; userCodeCookie=13818791413; temp_zh=cou%3D0%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2018-01-13%3B%E5%B9%BF%E5%B7%9E-%E5%8C%97%E4%BA%AC%3B1%2C0%2C0%3B%26cou%3D1%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2019-07-02%3B%E5%B9%BF%E5%B7%9E-%E6%88%90%E9%83%BD%3B1%2C0%2C0%3B%26; JSESSIONID=782121159357B98CA6112554CF44321E; WT-FPC=id=211.103.142.26-608782688.30635197:lv=1516170718655:ss=1516170709449:fs=1513243317440:pn=2:vn=10; language=zh_CN; WT.al_flight=WT.al_hctype(S)%3AWT.al_adultnum(1)%3AWT.al_childnum(0)%3AWT.al_infantnum(0)%3AWT.al_orgcity1(CAN)%3AWT.al_dstcity1(CTU)%3AWT.al_orgdate1(2019-07-02)
+    * 26/Jun/2019:03:42:54 -0800#CS#POST /B2C40/dist/main/images/common.png HTTP/1.1#CS#POST#CS#application/x-www-form-urlencoded; charset=UTF-8#CS#json=%7B%22depcity%22%3A%22CAN%22%2C+%22arrcity%22%3A%22WUH%22%2C+%22flightdate%22%3A%2220180220%22%2C+%22adultnum%22%3A%221%22%2C+%22childnum%22%3A%220%22%2C+%22infantnum%22%3A%220%22%2C+%22cabinorder%22%3A%220%22%2C+%22airline%22%3A%221%22%2C+%22flytype%22%3A%220%22%2C+%22international%22%3A%220%22%2C+%22action%22%3A%220%22%2C+%22segtype%22%3A%221%22%2C+%22cache%22%3A%220%22%2C+%22preUrl%22%3A%22%22%2C+%22isMember%22%3A%22%22%7D#CS#http://b2c.csair.com/B2C40/modules/bookingnew/main/flightSelectDirect.html?t=S&c1=CAN&c2=WUH&d1=2018-02-20&at=1&ct=0&it=0#CS#192.168.180.1#CS#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36#CS#2019-06-26T03:42:54-08:00#CS#192.168.180.111#CS#JSESSIONID=782121159357B98CA6112554CF44321E; sid=b5cc11e02e154ac5b0f3609332f86803; aid=8ae8768760927e280160bb348bef3e12; identifyStatus=N; userType4logCookie=M; userId4logCookie=13818791413; useridCookie=13818791413; userCodeCookie=13818791413; temp_zh=cou%3D0%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2018-01-13%3B%E5%B9%BF%E5%B7%9E-%E5%8C%97%E4%BA%AC%3B1%2C0%2C0%3B%26cou%3D1%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2018-01-17%3B%E5%B9%BF%E5%B7%9E-%E6%88%90%E9%83%BD%3B1%2C0%2C0%3B%26; JSESSIONID=782121159357B98CA6112554CF44321E; WT-FPC=id=211.103.142.26-608782688.30635197:lv=1516170718655:ss=1516170709449:fs=1513243317440:pn=2:vn=10; language=zh_CN; WT.al_flight=WT.al_hctype(S)%3AWT.al_adultnum(1)%3AWT.al_childnum(0)%3AWT.al_infantnum(0)%3AWT.al_orgcity1(CAN)%3AWT.al_dstcity1(CTU)%3AWT.al_orgdate1(2018-01-17)
     *
     * @param sc
     * @param kafkaParams
@@ -79,33 +83,64 @@ object DataProcessLaunch {
     //这个关键字表示线程安全，会被多个线程所使用
     @volatile var filterRuleRef = sc.broadcast(filterRuleList)
 
+    /**
+      * 数据分类的思路:
+      * 1. 读取数据库配置的分类规则信息
+      * 2. 将读取的分类规则信息进行广播到executor节点
+      * 3. 监视广播变量是否发生改变, 如果一旦发生了改变就需要重新广播
+      * 4. 对rdd数据的请求地址进行正则表达式匹配. 如果匹配上了就打标签
+      */
+    val ruleMapList: mutable.HashMap[String, ArrayBuffer[String]] = AnalyzerRuleDB.queryClassifyRule()
+    //将读取到的规则信息进行广播
+    //这个关键字表示线程安全，会被多个线程所使用
+    @volatile var ruleMapRef: Broadcast[mutable.HashMap[String, ArrayBuffer[String]]] = sc.broadcast(ruleMapList)
+
+
     //获取jedis连接
     val jedis = JedisConnectionUtil.getJedisCluster
 
     //打印数据
     //lines.foreachRDD(rdd=>rdd.foreach(println(_)))
 
-    //业务处理,foreachRDD：在driver端执行
+    //业务处理,foreachRDD：在driver端执行  DStream拿到的RDD在物理上只有一个RDD, 逻辑上有多个RDD
     lines.foreachRDD(foreachFunc = rdd => {
       //监视过滤规则广播变量是否发生了改变
       filterRuleRef = BroadcastProcess.monitorFilterRule(sc, filterRuleRef, jedis)
 
-      //TODO 1：首先使用缓存对rdd进行存储，如果rdd在我们的job中多次反复的使用的话，要加上缓存，提高执行效率
+      //TODO 1. 首先使用缓存对rdd进行存储，如果rdd在我们的job中多次反复的使用的话，要加上缓存，提高执行效率
+      //将数据优先放到内存中, 能存就存,不能存就不存了
       rdd.cache()
 
-      //TODO 2：数据拆分，将字符串转换成bean对象
+      //TODO 2. 数据拆分，将字符串转换成bean对象
       val accessLogRDD: RDD[AccessLog] = DataSplit.parseAccessLog(rdd)
 
-      //TODO 3：链路统计 要写入redis中所以传一个redis
+      //TODO 3. 链路统计 要写入redis中所以传一个redis
       BusinessProcess.linkCount(accessLogRDD, jedis)
 
-      //TODO 4：数据清洗（将符合过滤规则的数据清洗掉）
+      //TODO 4. 数据清洗（将符合过滤规则的数据清洗掉）
       val filterRDD: RDD[AccessLog] = accessLogRDD.filter(accessLog => UrlFilter.filterUrl(accessLog, filterRuleRef.value))
 
       //输出测试
       filterRDD.foreach(println(_))
       println("===================")
       //accessLogRDD.foreach(println(_))
+
+      //数据处理
+      val processedRDD = filterRDD.map(f = record => {
+        //TODO 5. 数据脱敏操作(将手机号码、身份证号码使用md5算法进行加密)
+        record.httpCookie = EncryptionData.encryptionPhone(record.httpCookie)
+        record.httpCookie = EncryptionData.encryptionID(record.httpCookie)
+
+        //TODO 6. 数据分类打标签(国内\国际 查询\预定) 来一条数据读取它的请求地址然后根据分类规则进行匹配, 匹配上了就打标签
+        val requestLabel: RequestType = RequestTypeClassify.classifyByRequest(record, ruleMapRef.value)
+
+        //TODO 7. 单程 往返标签
+        val travelTypeLabel: TravelTypeEnum.Value = TravelTypeClassify.classifyByReferer(record.httpReferer)
+
+        travelTypeLabel
+
+      })
+      processedRDD.foreach(println(_))
 
       //TODO 释放资源
       rdd.unpersist()
