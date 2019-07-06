@@ -42,6 +42,7 @@ object DataSplit {
             //cou%3D0%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2018-01-13%3B%E5%B9%BF%E5%B7%9E-%E5%8C%97%E4%BA%AC%3B1%2C0%2C0%3B%26cou%3D1%3Bsegt%3D%E5%8D%95%E7%A8%8B%3Btime%3D2019-07-02%3B%E5%B9%BF%E5%B7%9E-%E6%88%90%E9%83%BD%3B1%2C0%2C0%3B%26
             val kv = s.split("=")
             if(kv.length>1){
+              //有可能value值是编码后的, 对其进行解码
               try {
                 val chPattern = Pattern.compile("u([0-9a-fA-F]{4})")
                 val chMatcher = chPattern.matcher(kv(1))
