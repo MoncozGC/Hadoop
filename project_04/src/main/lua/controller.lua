@@ -79,17 +79,17 @@ if isGone then
     end
     --读取body信息
     ngx.req.read_body()
-    ---请求参数
+    --请求参数
     local request_body = ngx.var.request_body
     if request_body == nil then
         request_body = ""
     end
-    ---跳转来源
+    --跳转来源
     local http_referer = ngx.var.http_referer
     if http_referer == nil then
         http_referer = ""
     end
-    ---客户端地址
+    --客户端地址
     local remote_addr = ngx.var.remote_addr
     if remote_addr == nil then
         remote_addr = ""
