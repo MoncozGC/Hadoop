@@ -50,7 +50,7 @@ object BusinessProcess {
       val activeNumMap = activeNum.collectAsMap()
 
       //将数据写入redis 包装到一个map对象中, 进行序列化成字符串
-      val fieldsMap = Map(
+      val fieldsMap: Map[String, collection.Map[String, Int]] = Map(
         "serverCountMap" -> serverCountMap,
         "activeNumMap" -> activeNumMap
       )
