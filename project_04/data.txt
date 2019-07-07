@@ -32,4 +32,24 @@ TODO 10: 数据格式化 往kafka中写入的数据  返回processedData  输出
 	
 	//未格式化的数据 输出processedRDD.foreach(println(_))
 	ProcessedData(,POST,POST /B2C40/query/jaxb/direct/query.ao HTTP/1.1,192.168.83.1,Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36,2019-07-07T13:55:28+08:00,192.168.83.110,false,RequestType(National,Query),RoundTrip,CoreRequestParams(20180220,CAN,WUH),782121159357B98CA6112554CF44321E,NULL,Some(QueryRequestData(false, 0, , , , , CAN, WUH, 20180220, 1, 0, 0, , 1)),Some(QueryRequestData(-1, -1, , , , , ListBuffer(), ListBuffer(), ListBuffer(), ListBuffer(), ListBuffer(), ListBuffer(), ListBuffer(), -1)),http://b2c.csair.com/B2C40/modules/bookingnew/main/flightSelectDirect.html?t=R&c1=CAN&c2=CTU&d1=2019-07-07&d2=2019-07-08&at=1&ct=0&it=0)
+	
+TODO 11. 数据推送, 将拼接好的字符串发送到kafka中  [在服务器上开启模拟消费者]
+	
+	查询的数据, topic: processedQuery
+	NULL#CS#POST#CS#POST /B2C40/query/jaxb/direct/query.ao HTTP/1.1#CS#192.168.83.1#CS#Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36#CS#2019-07-07T15:58:08+08:00#CS#192.168.83.110#CS#false#CS#National#CS#Query#CS#RoundTrip#CS#20180220#CS#CAN#CS#WUH#CS#782121159357B98CA6112554CF44321E#CS#NULL#CS#{"isEmpty":false,"flightType":0,"queryTime":"","queryUserId":"","queryUnUserId":"","queryIp":"","depCity":"CAN","arrCity":"WUH","flightDate":"20180220","adultNum":"1","childNum":"0","infantNum":"0","country":"","travelType":1}#CS#{"flightType":-1,"travelType":-1,"bookTime":"","bookUserId":"","bookUnUserId":"","bookIp":"","psgName":[],"psgType":[],"idType":[],"idCard":[],"contractName":"","contractPhone":"D41D8CD98F00B204E9800998ECF8427E","bookAgent":"","depCity":[],"arrCity":[],"flightDate":[],"flightNo":[],"cabin":[]}#CS#http://b2c.csair.com/B2C40/modules/bookingnew/main/flightSelectDirect.html?t=R&c1=CAN&c2=CTU&d1=2019-07-07&d2=2019-07-08&at=1&ct=0&it=0
+	
+任务实时监控
+	local-1562489597606: appName的id
+	driver: 写死的
+	dataprocess-streaming: appName
+
+	批次的开始时间
+	"local-1562489597606.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingEndTime": {
+	"value": 1562489706228
+	}
+	
+	批次的结束时间
+	"local-1562489597606.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingStartTime": {
+	"value": 1562489705020
+	}
 
