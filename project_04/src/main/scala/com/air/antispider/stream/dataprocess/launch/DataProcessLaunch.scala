@@ -1,6 +1,6 @@
 package com.air.antispider.stream.dataprocess.launch
 
-import com.air.antispider.stream.common.bean.{AccessLog, AnalyzeRule, BookRequestData, QueryRequestData, RequestType}
+import com.air.antispider.stream.common.bean._
 import com.air.antispider.stream.common.util.jedis.{JedisConnectionUtil, PropertiesUtil}
 import com.air.antispider.stream.dataprocess.businessprocess._
 import com.air.antispider.stream.dataprocess.constants.{BehaviorTypeEnum, TravelTypeEnum}
@@ -114,6 +114,18 @@ object DataProcessLaunch {
     @volatile var queryAndBookRuleRef: Broadcast[mutable.HashMap[String, List[AnalyzeRule]]] = sc.broadcast(queryAndBookMap)
 
 
+    /**
+      * 数据加工的思路:
+      * 1. 读取mysql中配置的黑名单ip
+      * 2. 将读取到的黑名单ip广播到executor节点
+      * 3. 监控黑名单ip是否发生了改变, 如果改变重新广播
+      * 4. 判断当前ip是否为黑名单ip, 如果是就标记为true
+      */
+    //查询黑名单ip
+    val ipBlackList: ArrayBuffer[String] = AnalyzerRuleDB.queryIpBlackList()
+    //广播到executor节点
+    @volatile var ipBlackListRef: Broadcast[ArrayBuffer[String]] = sc.broadcast(ipBlackList)
+
     //获取jedis连接
     val jedis = JedisConnectionUtil.getJedisCluster
 
@@ -128,6 +140,8 @@ object DataProcessLaunch {
       ruleMapRef = BroadcastProcess.monitorClassifyRule(sc, ruleMapRef, jedis)
       //监视数据解析规则广播是否发生了改变
       queryAndBookRuleRef = BroadcastProcess.monitorQueryAndBookRule(sc, queryAndBookRuleRef, jedis)
+      //监视黑名单ip广播是否发生了改变
+      ipBlackListRef = BroadcastProcess.monitorIpBlackList(sc, ipBlackListRef, jedis)
 
       //TODO 1. 首先使用缓存对rdd进行存储，如果rdd在我们的job中多次反复的使用的话，要加上缓存，提高执行效率
       //将数据优先放到内存中, 能存就存,不能存就不存了
@@ -160,7 +174,6 @@ object DataProcessLaunch {
         val travelTypeLabel: TravelTypeEnum.Value = TravelTypeClassify.classifyByReferer(record.httpReferer)
 
         //TODO 8. 数据的解析
-
         //  获取查询的解析规则  QueryRule是传入的key  getOrElse返回指定key相关的value值, 如果没有就返回默认值
         val queryRules: List[AnalyzeRule] = queryAndBookRuleRef.value.getOrElse("QueryRule", null)
         //  获取预定的解析规则
@@ -175,6 +188,9 @@ object DataProcessLaunch {
           //------bookRules: 预定的解析规则
           requestTypeLabel, record.requestMethod, record.contentType,
           record.request, record.requestBody, travelTypeLabel, bookRules)
+
+        //TODO 9. 数据加工(黑名单ip判断)
+        val highFreIp = IpOperation.ipFreIp(record.remoteAddr, ipBlackListRef.value)
 
         bookRequestData
 
