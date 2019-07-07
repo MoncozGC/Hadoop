@@ -15,7 +15,7 @@ import redis.clients.jedis.JedisCluster
 object BusinessProcess {
 
 
-  def linkCount(logRDD: RDD[AccessLog], jedis: JedisCluster): Unit = {
+  def linkCount(logRDD: RDD[AccessLog], jedis: JedisCluster): collection.Map[String, Int] = {
     /**
       * 实现思路:
       * 1. 统计各个链路的数据采集量
@@ -47,11 +47,11 @@ object BusinessProcess {
     if (!serverCount.isEmpty() && !activeNum.isEmpty()) {
       //将计算好的RDD转换成map
       val serverCountMap: collection.Map[String, Int] = serverCount.collectAsMap()
-      val activeNumMap = activeNum.collectAsMap()
+      val activeNumMap: collection.Map[String, Int] = activeNum.collectAsMap()
 
       //将数据写入redis 包装到一个map对象中, 进行序列化成字符串
       val fieldsMap: Map[String, collection.Map[String, Int]] = Map(
-        "serverCountMap" -> serverCountMap,
+        "serversCountMap" -> serverCountMap,
         "activeNumMap" -> activeNumMap
       )
 
@@ -67,6 +67,8 @@ object BusinessProcess {
       jedis.setex(keyName, expTime, value)
     }
 
+    // 12. 监控数据流量 步骤需要传递链路的数据采集数
+    serverCount.collectAsMap()
   }
 
 }
