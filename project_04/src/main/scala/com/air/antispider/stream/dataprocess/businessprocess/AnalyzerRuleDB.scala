@@ -13,8 +13,6 @@ import scala.collection.mutable.ArrayBuffer
   * 数据库的操作类
   */
 object AnalyzerRuleDB {
-
-
   /**
     * 查询过滤规则
     *
@@ -31,6 +29,7 @@ object AnalyzerRuleDB {
     val list: ArrayBuffer[String] = QueryDB.queryData(sql, field)
     list
   }
+
 
   /**
     * 查询分类规则信息
@@ -128,5 +127,18 @@ object AnalyzerRuleDB {
     analyzeRuleList.toList
   }
 
+  /**
+    * 读取黑名单ip信息
+    */
+  def queryIpBlackList(): ArrayBuffer[String] = {
+    //编写sql
+    val sql = "select ip_name from nh_ip_blacklist"
+    //查询字段
+    val field = "ip_name"
+
+    val list = QueryDB.queryData(sql, field)
+
+    list
+  }
 
 }
