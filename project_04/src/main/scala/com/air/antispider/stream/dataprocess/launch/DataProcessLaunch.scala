@@ -195,6 +195,7 @@ object DataProcessLaunch {
 
         //TODO 10. 数据格式化
         val processedData: ProcessedData = DataPackage.dataPackage("", record, highFreIp, requestTypeLabel, travelTypeLabel, queryRequestData, bookRequestData)
+        
 
         processedData
         //测试解析完的查询数据
