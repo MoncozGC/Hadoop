@@ -11,6 +11,7 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
+import redis.clients.jedis.JedisCluster
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -30,16 +31,16 @@ object DataProcessLaunch {
     //每次拉取的数据，1000*分区数*采样时间=拉取数据量
     System.setProperty("spark.streaming.kafka.maxRatePerPartition", "1000")
 
-    //创建sparkconf对象
-    val conf = new SparkConf().setAppName("dataprocess-streaming").setMaster("local[2]")
+    //创建sparkConf对象
+    val conf: SparkConf = new SparkConf().setAppName("dataprocess-streaming").setMaster("local[2]")
       .set("spark.metrics.conf.executor.source.jvm.class", "org.apache.spark.metrics.source.JvmSource")
 
-    //创建sparkcontext对象
-    val sc = new SparkContext(conf)
+    //创建sparkContext对象
+    val sc: SparkContext = new SparkContext(conf)
 
     //读取kafka的集群地址
-    val brokers = PropertiesUtil.getStringByKey("default.brokers", "kafkaConfig.properties")
-    val kafkaParams = Map(
+    val brokers: String = PropertiesUtil.getStringByKey("default.brokers", "kafkaConfig.properties")
+    val kafkaParams: Map[String, String] = Map(
       "metadata.broker.list" -> brokers
     )
     //指定消费的topic
@@ -65,7 +66,7 @@ object DataProcessLaunch {
     */
   def setupSsc(sc: SparkContext, kafkaParams: Map[String, String], topic: Set[String]) = {
     //创建streamingContext对象
-    val ssc = new StreamingContext(sc, Seconds(5))
+    val ssc: StreamingContext = new StreamingContext(sc, Seconds(5))
 
     //从kafka中消费数据
     val lines: DStream[String] = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, topic).map(_._2)
@@ -127,7 +128,7 @@ object DataProcessLaunch {
     @volatile var ipBlackListRef: Broadcast[ArrayBuffer[String]] = sc.broadcast(ipBlackList)
 
     //获取jedis连接
-    val jedis = JedisConnectionUtil.getJedisCluster
+    val jedis: JedisCluster = JedisConnectionUtil.getJedisCluster
 
     //打印数据
     //lines.foreachRDD(rdd=>rdd.foreach(println(_)))
@@ -157,12 +158,12 @@ object DataProcessLaunch {
       val filterRDD: RDD[AccessLog] = accessLogRDD.filter(accessLog => UrlFilter.filterUrl(accessLog, filterRuleRef.value))
 
       //输出测试
-      filterRDD.foreach(println(_))
+      rdd.foreach(println(_))
       println("===================")
       //accessLogRDD.foreach(println(_))
 
       //数据处理
-      val processedRDD = filterRDD.map(f = record => {
+      val processedRDD: RDD[ProcessedData] = filterRDD.map(f = record => {
         //TODO 5. 数据脱敏操作(将手机号码、身份证号码使用md5算法进行加密)
         record.httpCookie = EncryptionData.encryptionPhone(record.httpCookie)
         record.httpCookie = EncryptionData.encryptionID(record.httpCookie)
@@ -190,12 +191,21 @@ object DataProcessLaunch {
           record.request, record.requestBody, travelTypeLabel, bookRules)
 
         //TODO 9. 数据加工(黑名单ip判断)
-        val highFreIp = IpOperation.ipFreIp(record.remoteAddr, ipBlackListRef.value)
+        val highFreIp: Boolean = IpOperation.ipFreIp(record.remoteAddr, ipBlackListRef.value)
 
-        bookRequestData
+        //TODO 10. 数据格式化
+        val processedData: ProcessedData = DataPackage.dataPackage("", record, highFreIp, requestTypeLabel, travelTypeLabel, queryRequestData, bookRequestData)
 
+        processedData
+        //测试解析完的查询数据
+        //bookRequestData
+        //测试数据格式化数据
+        //processedData
       })
-      processedRDD.foreach(println(_))
+      //测试解析完的查询数据
+      //processedRDD.foreach(println(_))
+      //测试数据格式化数据 toKafkaString推送到kafka的数据结构化数据
+      processedRDD.foreach(record => println(record.toKafkaString()))
 
       //TODO 释放资源
       rdd.unpersist()
