@@ -113,7 +113,7 @@ object BroadcastProcess {
       *   2.3：将redis的标记重置
       *   2.4：将数据重新的广播
       * 3：如果标记没有发生改变
-      * 将needUpdateQueryAndBookRuleList直接返回
+      * 将queryAndBookRuleRef直接返回
       */
     //1：获取redis里面的标记
     val needUpdateQueryAndBookRuleList = jedis.get("QueryAndBookRuleChangeFlag")
@@ -139,6 +139,46 @@ object BroadcastProcess {
       sc.broadcast(queryAndBookMap)
     } else {
       queryAndBookRuleRef
+    }
+  }
+
+  /**
+    * 监视黑名单ip是否发生了改变
+    *
+    * @param sc
+    * @param ipBlackListRef
+    * @param jedis
+    * @return
+    */
+  def monitorIpBlackList(sc: SparkContext, ipBlackListRef: Broadcast[ArrayBuffer[String]], jedis: JedisCluster): Broadcast[ArrayBuffer[String]] = {
+    /**
+      * 思路实现：
+      * 1：获取redis里面的标记
+      * 2：判断标记是否发生了改变
+      *   2.1：重新获取数据库的过滤规则信息
+      *   2.2：将当前广播变量的值进行删除
+      *   2.3：将redis的标记重置
+      *   2.4：将数据重新的广播
+      * 3：如果标记没有发生改变
+      * 将ipBlackListRef直接返回
+      */
+    //1：获取redis里面的标记
+    val needUpdateIpBlackList: String = jedis.get("IpBlackListChangeFlag")
+
+    //2. 判断标记是否发生了改变
+    //needUpdateIpBlackList!=null: 判断redis的key是否存在
+    //!needUpdateIpBlackList.isEmpty : 判断redis的value值不是空
+    if (needUpdateIpBlackList != null && !needUpdateIpBlackList.isEmpty && needUpdateIpBlackList.toBoolean) {
+      //2.1. 重新获取数据库的过滤规则信息
+      val ipBlackListUpdate: ArrayBuffer[String] = AnalyzerRuleDB.queryIpBlackList()
+      //2.2. 将当前广播变量的值进行删除
+      ipBlackListRef.unpersist()
+      //2.3. 将redis的标记重置
+      jedis.set("IpBlackListChangeFlag", "false")
+      //2.4. 重新广播
+      sc.broadcast(ipBlackListUpdate)
+    } else {
+      ipBlackListRef
     }
   }
 
