@@ -43,13 +43,22 @@ TODO 11. 数据推送, 将拼接好的字符串发送到kafka中  [在服务器�
 	driver: 写死的
 	dataprocess-streaming: appName
 
-	批次的开始时间
-	"local-1562489597606.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingEndTime": {
-	"value": 1562489706228
-	}
+	批次的开始时间  lastCompletedBatch_processingEndTime
+	"local-1562564734818.driver.dataprocess-streaming.StreamingMetrics.streaming.lastCompletedBatch_processingEndTime": {
+	"value": 1562565212548
+	},
+	批次的结束时间  lastCompletedBatch_processingStartTime
+	"local-1562564734818.driver.dataprocess-streaming.StreamingMetrics.streaming.lastCompletedBatch_processingStartTime": {
+	"value": 1562565210018
+	},
 	
-	批次的结束时间
-	"local-1562489597606.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingStartTime": {
-	"value": 1562489705020
-	}
+	上次接收批处理结束时间  lastReceivedBatch_processingEndTime
+	"local-1562564734818.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingEndTime": {
+	"value": 1562565212548
+	},
+	
+	上次接收批处理开始时间  lastReceivedBatch_processingStartTime
+	"local-1562564734818.driver.dataprocess-streaming.StreamingMetrics.streaming.lastReceivedBatch_processingStartTime": {
+	"value": 1562565210018
+	},
 
