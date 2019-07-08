@@ -533,3 +533,34 @@ Spark自己一定是同步的，因此可以保证数据是消费一次且仅消
 6. 前端通过读取redis, 进行数据的展示
 
 ![1562505721656](pic/04.04_前端展示.png)
+
+7. web端通过读取redis数据进行展示
+
+   ```
+   	前台逻辑
+   		通过index.jsp加载index.js文件
+   		在index.js中加载commonIndex.jsp，并且通过commonIndex.jsp加载commonIndex.js文件
+   		在commonindex.js中加载systemMonitorIndex.jsp，然后加载systemMonitorIndex.js
+   		在systemMonitorIndex.js里面初始化首页的四个报表
+   	
+   	后台逻辑
+   	系统功能运行情况
+   		首先加载后台IndexSystemMonitorController中的getSystemFunctionInfo方法
+   		在方法中加载redis数据，如果两分钟内有数据就返回sign=0， 如果两分钟内没有数据sign=1
+		在前端通过sign去改变监控模块的颜色
+	实时流量转发情况（60s刷新一次）
+   		首页加载后台getRealTimeTraffic方法
+   		在方法中加载redis数据，20分钟前的数据，endtime作为图标的x轴，sourcecount作为图表的y轴，将x轴数据和y轴数据封装到list集合中，将集合进行返回
+   		获取集合中的x轴和y轴数据进行图表渲染展示
+   	各链路流量转发情况
+   		首先加载后台的IndexSystemMonitorController中的getRealTimeLinkTraffic方法
+   		在方法中加载前20分钟的数据，然后获取最新的一条数据
+   		将数据封装到map中返回，x轴就是ip地址，y轴就是链路数据量
+   		最后页面通过柱状图展示
+   	数据定时任务备份
+   		通过定时任务每隔两个小时进行备份
+   		从redis中查询出来30分钟之前的数据（redis数据），然后逐条将数据写入到mysql数据库中，并且插入一条mysql数据就删除0一条redis的数据
+   ```
+
+
+
