@@ -22,7 +22,7 @@ object BusinessProcess {
       * 2. 统计各个链路的活跃连接数
       * 3. 将统计好的数据写入到redis集群
       **/
-    //1. 统计各个链路的数据采集数
+    //1. 统计各个链路的数据采集数 -->服务器访问的次数
     val serverCount: RDD[(String, Int)] = logRDD.map(record => {
       /*val filed = record.split("#CS#")
       //获取ip
@@ -32,7 +32,7 @@ object BusinessProcess {
       //聚合
     }).reduceByKey(_ + _)
 
-    //2. 将各个链路的活跃连接数
+    //2. 将各个链路的活跃连接数 --> 当前服务器的在线人数
     val activeNum: RDD[(String, Int)] = logRDD.map(record => {
       /* val filed = record.split("#CS#")
        val server_addr = filed(9)
