@@ -20,8 +20,8 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
   * requestType：请求类型
   * travelType：往返类型
   * requestParams：核心请求参数，飞行时间、目的地、出发地
-  * cookieValue_JSESSIONID：cookie中的jessionid
-  * cookieValue_USERID：cookie中的userid
+  * cookieValue_JSESSIONID：cookie中的jessionId
+  * cookieValue_USERID：cookie中的userId
   * queryRequestData：查询请求的form数据
   * bookRequestData：预定请求的body数据
   * httpReferrer：refer
