@@ -4,7 +4,7 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
   * 工具类的作用：通过sql和value读取数据库的某一个字段
-  *  
+  *
   */
 object QueryDB {
   def queryData(sql: String, field: String): ArrayBuffer[String] = {
@@ -16,10 +16,10 @@ object QueryDB {
     val ps = conn.prepareStatement(sql)
     val rs = ps.executeQuery()
     //封装数据
-    while (rs.next()){
+    while (rs.next()) {
       arr.+=(rs.getString(field))
     }
-    c3p0Util.close(conn,ps,rs)
+    c3p0Util.close(conn, ps, rs)
     //返回结果
     arr
   }
