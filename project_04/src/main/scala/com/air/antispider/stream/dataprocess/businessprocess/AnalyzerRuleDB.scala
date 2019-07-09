@@ -10,15 +10,16 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * 数据库的操作类
+  * 预处理数据, 数据库的操作类
   */
 object AnalyzerRuleDB {
+
   /**
     * 查询过滤规则
     *
     * @return
     */
-  def queryFilterRule() = {
+  def queryFilterRule(): ArrayBuffer[String] = {
     //编写sql语句
     val sql = "select value from nh_filter_rule where type=0"
 
@@ -69,7 +70,7 @@ object AnalyzerRuleDB {
   /**
     * 读取数据库中的请求解析规则
     */
-  def queryRule(behaviorType: Int) = {
+  def queryRule(behaviorType: Int): List[AnalyzeRule] = {
     val analyzeRuleList = new ArrayBuffer[AnalyzeRule]()
     //定义查询的sql
     val sql = "select * from analyzerule where behavior_type=" + behaviorType
