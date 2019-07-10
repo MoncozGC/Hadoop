@@ -27,7 +27,7 @@ object SparkStreamingMonitor {
     * @param rdd   rdd.count就是计算的数据量
     * @param jedis 数据需要写入到redis中
     */
-  def streamingMonitor(sc: SparkContext, rdd: RDD[String], serversCountMap:collection.Map[String, Int], jedis: JedisCluster) = {
+  def streamingMonitor(sc: SparkContext, rdd: RDD[String], serversCountMap: collection.Map[String, Int], jedis: JedisCluster) = {
     /**
       * 实现思路：
       * 1：获取applicationId
@@ -55,15 +55,15 @@ object SparkStreamingMonitor {
     //获取开始时间："local-1562291492913.driver.dataprocess-streaming.StreamingMetrics.streaming.lastCompletedBatch_processingStartTime"
     val startTimePath = s"${applicationId}.driver.${applicationName}.StreamingMetrics.streaming.lastCompletedBatch_processingStartTime"
     val startTimeValue: JSONObject = result.getJSONObject(startTimePath)
-    var processStartTime:Long = 0
-    if(startTimeValue != null){
+    var processStartTime: Long = 0
+    if (startTimeValue != null) {
       processStartTime = startTimeValue.getLong("value")
     }
     //获取结束时间："local-1562291492913.driver.dataprocess-streaming.StreamingMetrics.streaming.lastCompletedBatch_processingEndTime"
     val endTimePath = s"${applicationId}.driver.${applicationName}.StreamingMetrics.streaming.lastCompletedBatch_processingEndTime"
     val endTimeValue: JSONObject = result.getJSONObject(endTimePath)
-    var processEndTime:Long = 0
-    if(endTimeValue != null){
+    var processEndTime: Long = 0
+    if (endTimeValue != null) {
       processEndTime = endTimeValue.getLong("value")
     }
     //7：获取批次计算数据的总量
@@ -76,7 +76,7 @@ object SparkStreamingMonitor {
     //指定日期转换格式
     //processEndTime: 是一个时间戳 需要转换成时间
     val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    val  processingEndTimeString = format.format(new Date(processEndTime))
+    val processingEndTimeString = format.format(new Date(processEndTime))
     //9：将计算出来的结果进行封装到map对象
     val fieldMap = scala.collection.mutable.Map(
       "endTime" -> processingEndTimeString,
@@ -88,7 +88,7 @@ object SparkStreamingMonitor {
       "serversCountMap" -> serversCountMap)
 
     //10：将封装好的数据写入到redis
-    val keyName = PropertiesUtil.getStringByKey("cluster.key.monitor.dataProcess", "jedisConfig.properties")+ System.currentTimeMillis().toString
+    val keyName = PropertiesUtil.getStringByKey("cluster.key.monitor.dataProcess", "jedisConfig.properties") + System.currentTimeMillis().toString
     //val keyNameLast = PropertiesUtil.getStringByKey("cluster.key.monitor.dataProcess", "jedisConfig.properties")+ "_LAST"
     val expTime = PropertiesUtil.getStringByKey("cluster.exptime.monitor", "jedisConfig.properties").toInt
 
