@@ -133,7 +133,7 @@ object ComputeLaunch {
       ipBlock.foreachRDD(rdd => {
         //收集到Driver端
         ipBlockAccessCountMap = rdd.collectAsMap()
-        println(s"单位时间内ip段的访问量:${ipBlockAccessCountMap}")
+        //println(s"单位时间内ip段的访问量:${ipBlockAccessCountMap}")
       })
 
       //TODO 2.2 某个ip, 单位时间内ip的访问量
@@ -143,7 +143,7 @@ object ComputeLaunch {
       ip.foreachRDD(rdd => {
         //收集到Driver端
         ipAccessCountMap = rdd.collectAsMap()
-        println(s"单位时间内ip的访问量:${ipAccessCountMap}")
+        //println(s"单位时间内ip的访问量:${ipAccessCountMap}")
       })
 
       //TODO 2.3 某个ip，单位时间内关键页面的访问量
@@ -153,7 +153,7 @@ object ComputeLaunch {
       critcalPages.foreachRDD(rdd => {
         //收集到Driver端
         criticalPageCountMap = rdd.collectAsMap()
-        println(s"单位时间内关键页面的访问量:${criticalPageCountMap}")
+        //println(s"单位时间内关键页面的访问量:${criticalPageCountMap}")
       })
 
       //TODO 2.4 某个ip，单位时间内ua的访问种类数
@@ -171,7 +171,7 @@ object ComputeLaunch {
       }).foreachRDD(rdd => {
         //收集到Driver端
         userAgentAccessCountMap = rdd.collectAsMap()
-        println(s"单位时间内ua的访问种类数:${userAgentAccessCountMap}")
+        //println(s"单位时间内ua的访问种类数:${userAgentAccessCountMap}")
       })
 
       //TODO 2.5 某个ip, 单位时间内关键页面的最短访问间隔
@@ -196,7 +196,7 @@ object ComputeLaunch {
       }).foreachRDD(rdd => {
         //收集到Driver端
         criticalPageAccTimeMap = rdd.collectAsMap()
-        println(s"单位时间内关键页面的最短访问间隔:${criticalPageAccTimeMap}")
+        //println(s"单位时间内关键页面的最短访问间隔:${criticalPageAccTimeMap}")
       })
 
       //TODO 2.6 某个ip，单位时间小于最小访问间隔（自设）的关键页面的查询次数
@@ -211,7 +211,7 @@ object ComputeLaunch {
         (record._1, count)
       }).foreachRDD(rdd => {
         aCriticalPageAccTimeMap = rdd.collectAsMap()
-        println(s"单位时间小于最小访问间隔（自设）的关键页面的查询次数:${aCriticalPageAccTimeMap}")
+        //println(s"单位时间小于最小访问间隔（自设）的关键页面的查询次数:${aCriticalPageAccTimeMap}")
       })
 
       //TODO 2.7 某个ip，单位时间内查询不同行程的次数
@@ -226,7 +226,7 @@ object ComputeLaunch {
         (record._1, count)
       }).foreachRDD(rdd => {
         flightQueryMap = rdd.collectAsMap()
-        println(s"单位时间内查询不同行程的次数:${flightQueryMap}")
+        //println(s"单位时间内查询不同行程的次数:${flightQueryMap}")
       })
 
       //TODO 2.8 某个ip, 单位时间内关键页面的访问次数的cookie数
@@ -242,12 +242,27 @@ object ComputeLaunch {
       }).foreachRDD(rdd => {
         //收集到Driver端
         cookieCountsMap = rdd.collectAsMap()
+        //println(s"单位时间内关键页面的访问次数的cookie数:${cookieCountsMap}")
+      })
+
+      //输出测试
+      queryDataPackageDStream.foreachRDD(rdd => {
+        println(s"单位时间内ip段的访问量:${ipBlockAccessCountMap}")
+        println(s"单位时间内ip的访问量:${ipAccessCountMap}")
+        println(s"单位时间内关键页面的访问量:${criticalPageCountMap}")
+        println(s"单位时间内ua的访问种类数:${userAgentAccessCountMap}")
+        println(s"单位时间内关键页面的最短访问间隔:${criticalPageAccTimeMap}")
+        println(s"单位时间小于最小访问间隔（自设）的关键页面的查询次数:${aCriticalPageAccTimeMap}")
+        println(s"单位时间内查询不同行程的次数:${flightQueryMap}")
         println(s"单位时间内关键页面的访问次数的cookie数:${cookieCountsMap}")
       })
+
       //是否可以打印出来？ 不能 这相当于初始化 只会执行一次
       //并且不会打印出数据, 因为上面的任务在executor执行的还没有执行往数据, 还没计算出来 所有没数据
       println(ipBlockAccessCountMap)
     }
+
+
 
     /*    //打印测试
         lines.foreachRDD(rdd => {
