@@ -1,9 +1,11 @@
 package com.air.antispider.stream.rulecompute.launch
 
+import java.util
+
 import com.air.antispider.stream.common.bean.{FlowCollocation, ProcessedData}
 import com.air.antispider.stream.common.util.jedis.{JedisConnectionUtil, PropertiesUtil}
 import com.air.antispider.stream.common.util.kafka.KafkaOffsetUtil
-import com.air.antispider.stream.rulecompute.businessprocess.{AnalyzerRuleDB, BroadcastProcess, CoreRule, QueryDataPackage}
+import com.air.antispider.stream.rulecompute.businessprocess._
 import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
 import kafka.serializer.StringDecoder
@@ -120,77 +122,132 @@ object ComputeLaunch {
       flowListRef = BroadcastProcess.monitorFlowList(sc, flowListRef, jedis)
     })
 
-    //TODO 2. 指标计算
-    //TODO 2.1 某个ip，单位时间内ip段的访问量（前两位）
-    //(192.168, 100),(192.172, 220)
-    val ipBlock = CoreRule.ipBlockAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
-    //将ip段转发成map类型, 因为使用起来方便
-    var ipBlockAccessCountMap = collection.Map[String, Int]()
-    ipBlock.foreachRDD(rdd => {
-      //收集到Driver端
-      ipBlockAccessCountMap = rdd.collectAsMap()
-      println(s"单位时间内ip段的访问量:${ipBlockAccessCountMap}")
-    })
+    //有数据才进行处理
+    if (flowListRef.value.size > 0) {
+      //TODO 2. 指标计算
+      //TODO 2.1 某个ip，单位时间内ip段的访问量（前两位）
+      //(192.168, 100),(192.172, 220)
+      val ipBlock = CoreRule.ipBlockAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
+      //将ip段转发成map类型, 因为使用起来方便
+      var ipBlockAccessCountMap = collection.Map[String, Int]()
+      ipBlock.foreachRDD(rdd => {
+        //收集到Driver端
+        ipBlockAccessCountMap = rdd.collectAsMap()
+        println(s"单位时间内ip段的访问量:${ipBlockAccessCountMap}")
+      })
 
-    //TODO 2.2 某个ip, 单位时间内ip的访问量
-    val ip = CoreRule.ipAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
-    //将ip转换成map类型，因为使用起来方便
-    var ipAccessCountMap = collection.Map[String, Int]()
-    ip.foreachRDD(rdd => {
-      //收集到Driver端
-      ipAccessCountMap = rdd.collectAsMap()
-      println(s"单位时间内ip的访问量:${ipAccessCountMap}")
-    })
+      //TODO 2.2 某个ip, 单位时间内ip的访问量
+      val ip = CoreRule.ipAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
+      //将ip转换成map类型，因为使用起来方便
+      var ipAccessCountMap = collection.Map[String, Int]()
+      ip.foreachRDD(rdd => {
+        //收集到Driver端
+        ipAccessCountMap = rdd.collectAsMap()
+        println(s"单位时间内ip的访问量:${ipAccessCountMap}")
+      })
 
-    //TODO 2.3 某个ip，单位时间内关键页面的访问量
-    val critcalPages = CoreRule.criticalPageCount(queryDataPackageDStream, Seconds(10), Seconds(10), queryCritcalPageListRef.value)
-    //将关键页面转换成map类型
-    var criticalPageCountMap = collection.Map[String, Int]()
-    critcalPages.foreachRDD(rdd => {
-      //收集到Driver端
-      criticalPageCountMap = rdd.collectAsMap()
-      println(s"单位时间内关键页面的访问量:${criticalPageCountMap}")
-    })
+      //TODO 2.3 某个ip，单位时间内关键页面的访问量
+      val critcalPages = CoreRule.criticalPageCount(queryDataPackageDStream, Seconds(10), Seconds(10), queryCritcalPageListRef.value)
+      //将关键页面转换成map类型
+      var criticalPageCountMap = collection.Map[String, Int]()
+      critcalPages.foreachRDD(rdd => {
+        //收集到Driver端
+        criticalPageCountMap = rdd.collectAsMap()
+        println(s"单位时间内关键页面的访问量:${criticalPageCountMap}")
+      })
 
-    //TODO 2.4 某个ip，单位时间内ua的访问种类数
-    //192.168.180.111 chrome、192.168.180.111 ie、192.168.180.111 chrome  2个User-Agent种类
-    val userAgentCounts: DStream[(String, Iterable[String])] = CoreRule.userAgentAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
-    //将userAgent转换成map对象
-    var userAgentAccessCountMap = collection.Map[String, Int]()
-    userAgentCounts.map(record => {
-      //获取到ip对应的所有的useragent
-      val userAgents = record._2
-      //取得useragent的种类数  相当于一个ip单位时间内使用设备的种类数 toSet去重, 我们只需要取种类数的一个就好
-      val count = userAgents.toSet.size
-      //record._1: IP  record._2: 用户代理(User-Agent)
-      (record._1, count)
-    }).foreachRDD(rdd => {
-      //收集到Driver端
-      userAgentAccessCountMap = rdd.collectAsMap()
-      println(s"单位时间内ua的访问种类数:${userAgentAccessCountMap}")
-    })
+      //TODO 2.4 某个ip，单位时间内ua的访问种类数
+      //192.168.180.111 chrome、192.168.180.111 ie、192.168.180.111 chrome  2个User-Agent种类
+      val userAgentCounts: DStream[(String, Iterable[String])] = CoreRule.userAgentAccessCount(queryDataPackageDStream, Seconds(10), Seconds(10))
+      //将userAgent转换成map对象
+      var userAgentAccessCountMap = collection.Map[String, Int]()
+      userAgentCounts.map(record => {
+        //获取到ip对应的所有的useragent
+        val userAgents = record._2
+        //取得useragent的种类数  相当于一个ip单位时间内使用设备的种类数 toSet去重, 我们只需要取种类数的一个就好
+        val count = userAgents.toSet.size
+        //record._1: IP  record._2: 用户代理(User-Agent)
+        (record._1, count)
+      }).foreachRDD(rdd => {
+        //收集到Driver端
+        userAgentAccessCountMap = rdd.collectAsMap()
+        println(s"单位时间内ua的访问种类数:${userAgentAccessCountMap}")
+      })
 
-    //TODO 2.7 某个ip，单位时间内查询不同行程的次数
-    val flightQuery: DStream[(String, Iterable[(String, String)])] = CoreRule.flightQuery(queryDataPackageDStream, Seconds(10), Seconds(10))
-    //转换成map对象
-    var flightQueryMap = collection.Map[String, Int]()
-    flightQuery.map(record => {
-      //获取所有的始发地 目的地
-      val flightQuerys = record._2
-      //获取查询次数
-      val count = flightQuerys.toSet.size
-      (record._1, count)
-    }).foreachRDD(rdd => {
-      flightQueryMap = rdd.collectAsMap()
-      println(s"单位时间内查询不同行程的次数:${flightQueryMap}")
-    })
+      //TODO 2.5 某个ip, 单位时间内关键页面的最短访问间隔
+      //(192.168.180.1,ArrayBuffer(2019-06-30T23:21:57-08:00, 2019-06-30T23:21:58-08:00, 2019-06-30T23:21:58-08:00)
+      val criticalPageAccTime: DStream[(String, Iterable[String])] = CoreRule.criticalPageAccTime(queryDataPackageDStream, Seconds(10), Seconds(10), queryCritcalPageListRef.value)
+      //转换成map
+      var criticalPageAccTimeMap = collection.Map[String, Int]()
+      criticalPageAccTime.map(record => {
+        //拿到访问时间
+        val accTimes = record._2
+        //统计出来所有的时间（将带时区的时间格式转换成十进制的时间戳）
+        val intervalList: util.ArrayList[Long] = RuleUtil.allTimeList(accTimes)
+        if (intervalList.size() > 0) {
+          //取出来最小的时间间隔
+          val minInterval: Int = RuleUtil.minInterval(intervalList)
+          //返回(ip, 最小的时间间隔)
+          (record._1, minInterval)
+        } else {
+          //没有给一个默认值
+          (record._1, -1)
+        }
+      }).foreachRDD(rdd => {
+        //收集到Driver端
+        criticalPageAccTimeMap = rdd.collectAsMap()
+        println(s"单位时间内关键页面的最短访问间隔:${criticalPageAccTimeMap}")
+      })
 
+      //TODO 2.6 某个ip，单位时间小于最小访问间隔（自设）的关键页面的查询次数
+      val aCriticalPageAccTime: DStream[((String, String), Iterable[String])] = CoreRule.aCriticalPageAccTime(queryDataPackageDStream, Seconds(10), Seconds(10), queryCritcalPageListRef.value)
+      var aCriticalPageAccTimeMap: collection.Map[(String, String), Int] = collection.Map[(String, String), Int]()
+      aCriticalPageAccTime.map(record => {
+        //取出来所有的时间
+        val accTimes: Iterable[String] = record._2
+        //计算时间间隔，时间间隔小于预设值的进行累加
+        val count: Int = RuleUtil.calcInterval(accTimes, flowListRef.value)
+        //record._1: (remoteAddr, request)
+        (record._1, count)
+      }).foreachRDD(rdd => {
+        aCriticalPageAccTimeMap = rdd.collectAsMap()
+        println(s"单位时间小于最小访问间隔（自设）的关键页面的查询次数:${aCriticalPageAccTimeMap}")
+      })
 
+      //TODO 2.7 某个ip，单位时间内查询不同行程的次数
+      val flightQuery: DStream[(String, Iterable[(String, String)])] = CoreRule.flightQuery(queryDataPackageDStream, Seconds(10), Seconds(10))
+      //转换成map对象
+      var flightQueryMap = collection.Map[String, Int]()
+      flightQuery.map(record => {
+        //获取所有的始发地 目的地
+        val flightQuerys = record._2
+        //获取查询次数
+        val count = flightQuerys.toSet.size
+        (record._1, count)
+      }).foreachRDD(rdd => {
+        flightQueryMap = rdd.collectAsMap()
+        println(s"单位时间内查询不同行程的次数:${flightQueryMap}")
+      })
 
-    //是否可以打印出来？ 不能 这相当于初始化 只会执行一次
-    //并且不会打印出数据, 因为上面的任务在executor执行的还没有执行往数据, 还没计算出来 所有没数据
-    println(ipBlockAccessCountMap)
-
+      //TODO 2.8 某个ip, 单位时间内关键页面的访问次数的cookie数
+      val cookieCounts = CoreRule.cookieCounts(queryDataPackageDStream, Seconds(10), Seconds(10), queryCritcalPageListRef.value)
+      //转换成map
+      var cookieCountsMap = collection.Map[String, Int]()
+      cookieCounts.map(record => {
+        //取出来所有的jsessionid
+        val cookies = record._2
+        //去重然后统计次数
+        val count = cookies.toSet.size
+        (record._1, count)
+      }).foreachRDD(rdd => {
+        //收集到Driver端
+        cookieCountsMap = rdd.collectAsMap()
+        println(s"单位时间内关键页面的访问次数的cookie数:${cookieCountsMap}")
+      })
+      //是否可以打印出来？ 不能 这相当于初始化 只会执行一次
+      //并且不会打印出数据, 因为上面的任务在executor执行的还没有执行往数据, 还没计算出来 所有没数据
+      println(ipBlockAccessCountMap)
+    }
 
     /*    //打印测试
         lines.foreachRDD(rdd => {
