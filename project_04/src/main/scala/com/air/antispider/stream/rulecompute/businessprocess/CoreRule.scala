@@ -15,7 +15,7 @@ object CoreRule {
 
 
   /**
-    * 计算单位时间内ip段的访问量
+    * 2.1 计算单位时间内ip段的访问量
     *
     * @param queryDataPackageDStream kafka Bean对象的数据
     * @param windowDuration          窗口长度
@@ -45,7 +45,7 @@ object CoreRule {
   }
 
   /**
-    * 某个ip, 单位时间内ip的访问量
+    * 2.2 某个ip, 单位时间内ip的访问量
     * 线上5分钟, 测试10秒钟
     *
     * @param queryDataPackageDStream
@@ -70,7 +70,7 @@ object CoreRule {
   }
 
   /**
-    * 计算单位时间内关键页面的访问量
+    * 2.3 计算单位时间内关键页面的访问量
     * 使用窗口函数，线上5分钟，测试10秒钟
     *
     * @param queryDataPackageDStream
@@ -108,7 +108,7 @@ object CoreRule {
   }
 
   /**
-    * 某个ip，单位时间内ua的访问种类数
+    * 2.4 某个ip，单位时间内ua的访问种类数
     *
     * @param queryDataPackageDStream
     * @param windowDuration
@@ -128,14 +128,92 @@ object CoreRule {
   }
 
   /**
-    * 某个ip，单位时间内查询不同行程的次数
+    * 2.5 某个ip, 单位时间内关键页面的最短访问间隔
+    *
+    * @param queryDataPackageDStream
+    * @param windowDuration
+    * @param sideDuration
+    * @param queryCriticalPages
+    */
+  def criticalPageAccTime(queryDataPackageDStream: DStream[ProcessedData], windowDuration: Duration, sideDuration: Duration, queryCriticalPages: ArrayBuffer[String]): DStream[(String, Iterable[String])] = {
+    /**
+      * 代码思路：
+      * 1. 拿到kafka的数据
+      * 2. 从kafka中拿到request
+      * 3. 匹配广播变量的数据(remoteAdd，timeIso8601)
+      * 4. 拿到上面的数据，循环出来每个remoteAddr和他的时间
+      * 5. 对timeIso8601进行排序，然后取到相邻的访问时间的间隔
+      * 6. 将remoteAad和timeIso8601进行排序，然后取到最小的访问间隔
+      */
+    queryDataPackageDStream.map(processData => {
+      //拿到request
+      val request = processData.request
+      var flag = false
+      //循环匹配广播变量中的关键页面正则表达式
+      queryCriticalPages.foreach(page => {
+        if (request.matches(page)) {
+          flag = true
+        }
+      })
+      //如果匹配上
+      if (flag) {
+        (processData.remoteAddr, processData.timeIso8601)
+      } else {
+        ("", "NULL")
+      }
+    }).groupByKeyAndWindow(windowDuration, sideDuration)
+
+  }
+
+
+  /**
+    * 2.6 某个ip，单位时间内小于最短访问时间（自设）的关键页面的查询次数
+    *
+    * @param queryDataPackageDStream
+    * @param windowDuration
+    * @param sideDuration
+    * @param queryCriticalPages
+    * @return
+    */
+  def aCriticalPageAccTime(queryDataPackageDStream: DStream[ProcessedData], windowDuration: Duration, sideDuration: Duration, queryCriticalPages: ArrayBuffer[String]) = {
+    /**
+      * 实现思路：
+      * 1：拿到kafka的数据以及关键页面的广播变量
+      * 2：从kafka中获取request数据，匹配关键页面
+      * 3：匹配成功：返回（（remoteAddr, request）， timeIso8601），并进行窗口函数操作
+      * 4：拿到上面的数据进行map操作，循环出来每个（remoteAddr， request）和timeIso8601
+      * 5： 对timeIso8601进行循环操作，计算临近的两个时间差
+      * 6：对上面的arrayBuffer进行迭代操作，大于预设值就累加count
+      * 7：将数据收集起来
+      */
+    queryDataPackageDStream.map(processData => {
+      //获取request请求
+      val request: String = processData.request
+      var flag = false
+      //匹配关键页面
+      queryCriticalPages.foreach(page => {
+        if (request.matches(page)) {
+          flag = true
+        }
+      })
+      //匹配上
+      if (flag) {
+        ((processData.remoteAddr, request), processData.timeIso8601)
+      } else {
+        (("", ""), "NULL")
+      }
+    }).groupByKeyAndWindow(windowDuration, sideDuration)
+  }
+
+  /**
+    * 2.7 某个ip，单位时间内查询不同行程的次数
     *
     * @param queryDataPackageDStream
     * @param windowDuration
     * @param sideDuration
     * @return
     */
-  def flightQuery(queryDataPackageDStream: DStream[ProcessedData], windowDuration: Duration, sideDuration: Duration) = {
+  def flightQuery(queryDataPackageDStream: DStream[ProcessedData], windowDuration: Duration, sideDuration: Duration): DStream[(String, Iterable[(String, String)])] = {
     /**
       * 实现思路:
       * 1. 获取到kafka中的数据
@@ -147,4 +225,41 @@ object CoreRule {
       (processData.remoteAddr, (processData.requestParams.arrcity, processData.requestParams.depcity))
     }).groupByKeyAndWindow(windowDuration, sideDuration)
   }
+
+  /**
+    * 2.8 某个ip, 单位时间内关键页面的访问次数的cookie数
+    *
+    * @param queryDataPackageDStream
+    * @param windowDuration
+    * @param sideDuration
+    * @param queryCriticalPages
+    */
+  def cookieCounts(queryDataPackageDStream: DStream[ProcessedData], windowDuration: Duration, sideDuration: Duration, queryCriticalPages: ArrayBuffer[String]): DStream[(String, Iterable[String])] = {
+    /**
+      * 1、	拿到kafka数据，关键页面的广播变量，窗口时间，滑动时间进行计算
+      * 2、	从kafka数据中取到request，匹配关键页面
+      * 3、	匹配成功，记录（remoteAddr，JSESSIONID），并做groupByKey 操作，将相同remoteAddr的JSESSIONID统计到ArrayBuffer中
+      * 4、	拿到上面的数据进行去重count，最终封装数据（remoteAddr，JSESSIONIDCount）
+      * 5、	最后将（remoteAddr，JSESSIONIDCount最小值）收集到map中
+      */
+    queryDataPackageDStream.map(processData => {
+      //拿到request
+      val request = processData.request
+      var flag = false
+      //循环匹配广播变量中的关键页面正则表达式
+      queryCriticalPages.foreach(page => {
+        if (request.matches(page)) {
+          flag = true
+        }
+      })
+
+      //判断是否关键页面
+      if (flag) {
+        (processData.remoteAddr, processData.cookieValue_JSESSIONID)
+      } else {
+        ("", "NULL")
+      }
+    }).groupByKeyAndWindow(windowDuration, sideDuration)
+  }
+
 }
