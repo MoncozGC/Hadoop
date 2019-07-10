@@ -3,11 +3,29 @@
 
 ## 系统说明
 
-```properties
-1. 开启zk:	kafka需要zk
-2. 开启kafka:	开启集群kafka
-3. 集成 1.nginx与lua 2. openresy与redis 3. lua集成kafka:	开启nginx
-4. 集成redis集群:	开启redis集群
+```shell
+#1. 开启zk:	kafka需要zk [三台都需要操作]
+	/export/servers/zookeeper-3.4.5-cdh5.14.0/sbin/zkServer.sh start
+	#查看状态
+	/export/servers/zookeeper-3.4.5-cdh5.14.0/sbin/zkServer.sh status
+#2. 开启kafka:	开启集群kafka
+	#开启kafka [三台都需要操作]
+	/export/servers/kafka/bin/kafka-server-start.sh  /export/servers/kafka/config/server.properties > /dev/null 2>&1 &
+	#模拟消费者
+	bin/kafka-console-consumer.sh -from-beginning -topic B2CDATA_COLLECTION1 -zookeeper node01:2181,node02:2181,node03:2181
+	#查看已创建的topic列表
+	bin/kafka-topics.sh --list --zookeeper node01:2181
+#3. 集成 1.nginx与lua 2. openresy与redis 3. lua集成kafka:	开启nginx
+	#开启nginx [node01]
+	/usr/local/openresty/nginx/sbin/nginx 
+#4. 集成redis集群:	开启redis集群
+	#进入redis目录 [node01]
+	/export/servers/redis
+	分别启动7001 7002 7003
+	bin/redis-server  cluster/7001/redis.conf 
+	bin/redis-server  cluster/7002/redis.conf 
+	bin/redis-server  cluster/7003/redis.conf 
+#5. 开启hadoop集群(hdfs)
 ```
 
 
