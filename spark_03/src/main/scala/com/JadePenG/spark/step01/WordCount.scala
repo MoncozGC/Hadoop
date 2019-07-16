@@ -13,7 +13,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 object WordCount {
   def main(args: Array[String]): Unit = {
     /**
-      * SparkContect是我们的程序入口，如果想开发SparkCore应用程序首先需要创建SparkContext对象
+      * SparkContext是我们的程序入口，如果想开发SparkCore应用程序首先需要创建SparkContext对象
       * 主要是实例化了两个对象：
       * 1）DAGScheduler
       * 2）TaskScheduler
@@ -24,11 +24,11 @@ object WordCount {
     //将传入的参数赋值给变量
     //val inputPath = args(0)
     //val outputPath = args(1)
-    val Array(inputPath, outputPath) = args
+    //val Array(inputPath, outputPath) = args
 
     //通过sc读取数据，指定数据源
-    val lines: RDD[String] = sc.textFile(inputPath)
-lines.cache()
+    val lines: RDD[String] = sc.textFile("F:\\wordCount.txt")
+    lines.cache()
 
     //将内容分词压平
     val words: RDD[String] = lines.flatMap(_.split(" ")).filter(!_.isEmpty)
@@ -37,15 +37,16 @@ lines.cache()
     val wordAndOne: RDD[(String, Int)] = words.map((_, 1))
 
     //分组聚合
-    val reduced: RDD[(String, Int)] = wordAndOne.reduceByKey((x, y)=>x+y)
+    val reduced: RDD[(String, Int)] = wordAndOne.reduceByKey((x, y) => x + y)
 
     //排序
     val sorted: RDD[(String, Int)] = reduced.sortBy(_._2, false)
 
     //将数据保存到指定路径
+
+    sorted.saveAsTextFile("F:\\text")
     //    val result: Array[(String, Int)] = sorted.collect()
     //    result.foreach(println(_))
-    sorted.saveAsTextFile(outputPath)
 
     //释放资源
     sc.stop()
