@@ -3,7 +3,7 @@ package com.JadePenG.spark.step02
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * 计算PV
+  * 计算PV: 页面刷新的次数
   *
   * @author Peng
   */
