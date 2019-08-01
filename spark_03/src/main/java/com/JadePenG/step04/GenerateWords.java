@@ -15,7 +15,7 @@ import java.util.UUID;
 public class GenerateWords {
     public static void main(String[] args) throws InterruptedException {
         Properties props = new Properties();
-        props.setProperty("bootstrap.servers", "bigdata111:9092,bigdata112:9092,bigdata113:9092");
+        props.setProperty("bootstrap.servers", "node01:9092,node02:9092,node03:9092");
         //key和value的序列化方式
         props.setProperty("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.setProperty("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -36,7 +36,7 @@ public class GenerateWords {
             //遍历26个字母
             int code = new Random().nextInt(26) + base;
             char word = (char) code;
-            //生产者数据
+            //生产者数据  创建要发送到Kafka的记录
             ProducerRecord<String, String> record = new ProducerRecord<String, String>("0702", key, String.valueOf(word));
             //发送数据
             producer.send(record);

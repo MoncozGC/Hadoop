@@ -22,6 +22,9 @@ public class KafkaProducerApi {
 
         /**
          *发送成功是否需要leader回应
+         * 1: leader做出应答
+         * 0: 未做应答
+         * -1 all: follower-->leader-->produce  全部做出应答
          */
         properties.setProperty("acks", "1");
 
@@ -29,8 +32,13 @@ public class KafkaProducerApi {
 
         int i = 1;
         while (i < 10000) {
+            /**
+             * partition: 如果指定分区就写入指定分区中
+             * key: 没有指定分区编号就按照轮询的方式写入各个分区
+             */
             ProducerRecord record = new ProducerRecord("0702", null, "" + i);
             System.out.println(record);
+            //发送数据
             producer.send(record);
             Thread.sleep(100);
             i++;
