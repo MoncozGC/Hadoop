@@ -31,7 +31,7 @@ object BlackListToRedis {
       //获取hdfs的FileSystem
       val conf = new Configuration()
       //配置hdfs的路径
-      conf.set("fs.defaultFS", "hdfs://192.168.180.111:9000");
+      conf.set("fs.defaultFS", "hdfs://192.168.83.110:8020");
       val fs = FileSystem.get(conf)
       //时间格式化类，用于按时间存储
       val sdf = new SimpleDateFormat("yyyy/MM/dd/HH")

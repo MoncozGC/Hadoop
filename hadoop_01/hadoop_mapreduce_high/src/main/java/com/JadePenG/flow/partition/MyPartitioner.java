@@ -6,8 +6,8 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import javax.xml.soap.Text;
 
 /**
- *
  * 对手机号进行分区
+ *
  * @author Peng
  * @Description
  */

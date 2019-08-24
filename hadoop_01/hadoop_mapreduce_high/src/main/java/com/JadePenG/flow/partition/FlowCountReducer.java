@@ -1,6 +1,5 @@
 package com.JadePenG.flow.partition;
 
-import com.JadePenG.flow.sort.FlowBean;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;

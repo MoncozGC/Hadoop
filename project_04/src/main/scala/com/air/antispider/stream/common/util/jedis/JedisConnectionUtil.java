@@ -5,7 +5,7 @@ import redis.clients.jedis.*;
 import java.io.IOException;
 import java.util.*;
 
- 
+
 public class JedisConnectionUtil {
 
     /**
@@ -23,7 +23,7 @@ public class JedisConnectionUtil {
      * 创建JedisCluster
      * JedisCluster不需要单独构建连接池，其已经基于连接池实现
      */
-    private static void createJedisCluster(){
+    private static void createJedisCluster() {
         //读取配置文件
         Properties prop = PropertiesUtil.getProperties();
         //jedisCluster配置
@@ -69,13 +69,13 @@ public class JedisConnectionUtil {
         }
 
         //注意：这里超时时间不要太短，他会有超时重试机制
-        jedisCluster = new JedisCluster(nodes, connectionTimeout, soTimeout, maxAttempts,config);
+        jedisCluster = new JedisCluster(nodes, connectionTimeout, soTimeout, maxAttempts, config);
     }
 
     /**
      * 创建sentinel连接池
      */
-    private static void createJedisSentinelPool(){
+    private static void createJedisSentinelPool() {
         //读取jedis配置文件
         Properties prop = PropertiesUtil.getProperties();
         //jedis连接池配置
@@ -122,24 +122,25 @@ public class JedisConnectionUtil {
     /**
      * 在多线程环境同步初始化
      */
-    private static synchronized void JedisClusterInit(){
+    private static synchronized void JedisClusterInit() {
         if (jedisCluster == null)
-          createJedisCluster();
+            createJedisCluster();
     }
 
     /**
      * 在多线程环境同步初始化
      */
-    private static synchronized void sentinelPoolInit(){
+    private static synchronized void sentinelPoolInit() {
         if (jedisSentinelPool == null)
             createJedisSentinelPool();
     }
 
     /**
      * 获取一个jedis对象
+     *
      * @return
      */
-    public static Jedis getJedis(){
+    public static Jedis getJedis() {
         if (jedisSentinelPool == null)
             sentinelPoolInit();
         return jedisSentinelPool.getResource();
@@ -147,9 +148,10 @@ public class JedisConnectionUtil {
 
     /**
      * 获取一个jedis对象
+     *
      * @return
      */
-    public static JedisCluster getJedisCluster(){
+    public static JedisCluster getJedisCluster() {
         if (jedisCluster == null)
             JedisClusterInit();
         return jedisCluster;
@@ -157,36 +159,39 @@ public class JedisConnectionUtil {
 
     /**
      * 释放一个连接
+     *
      * @param jedis
      */
-    public static void returnRes(Jedis jedis){
+    public static void returnRes(Jedis jedis) {
         jedisSentinelPool.returnResource(jedis);
     }
 
     /**
      * 销毁一个连接
+     *
      * @param jedis
      */
-    public static void returnBrokenRes(Jedis jedis){
+    public static void returnBrokenRes(Jedis jedis) {
         jedisSentinelPool.returnBrokenResource(jedis);
     }
 
     /**
      * 获取集群上所有key
+     *
      * @param pattern
      * @return
      */
-    public static TreeSet<String> keys(JedisCluster jc, String pattern){
+    public static TreeSet<String> keys(JedisCluster jc, String pattern) {
         TreeSet<String> keys = new TreeSet<>();
         Map<String, JedisPool> clusterNodes = jc.getClusterNodes();
-        for(String k : clusterNodes.keySet()){
+        for (String k : clusterNodes.keySet()) {
             JedisPool jp = clusterNodes.get(k);
             Jedis jedis = jp.getResource();
             try {
                 keys.addAll(jedis.keys(pattern));
-            } catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-            } finally{
+            } finally {
                 //用完一定要close这个链接！！！
                 jedis.close();
             }
@@ -196,10 +201,11 @@ public class JedisConnectionUtil {
 
     /**
      * 连接redis方法
+     *
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        JedisCluster jedisCluster=getJedisCluster();
+        JedisCluster jedisCluster = getJedisCluster();
 //        jedisCluster.set("BlackChangeFlag", "false");
 //        jedisCluster.set("ProcessChangeFlag", "false");
 //        jedisCluster.set("FilterChangeFlag", "false");
@@ -213,7 +219,7 @@ public class JedisConnectionUtil {
         TreeSet<String> keySets = keys(jedisCluster, "*ChangeFlag");
         //使用完成后不要调用close，将会导致无法继续使用该对象
         //jedisCluster.close();
-        for(String k: keySets){
+        for (String k : keySets) {
             System.out.println(k + " ============ " + jedisCluster.get(k));
         }
 

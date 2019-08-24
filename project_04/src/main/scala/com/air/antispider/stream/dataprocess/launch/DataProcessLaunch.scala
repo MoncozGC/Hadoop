@@ -64,7 +64,7 @@ object DataProcessLaunch {
     * @param kafkaParams kafka的集群地址
     * @param topic       指定消费的topic
     */
-  def setupSsc(sc: SparkContext, kafkaParams: Map[String, String], topic: Set[String]) = {
+  def setupSsc(sc: SparkContext, kafkaParams: Map[String, String], topic: Set[String]): StreamingContext = {
     //创建streamingContext对象
     val ssc: StreamingContext = new StreamingContext(sc, Seconds(5))
 
