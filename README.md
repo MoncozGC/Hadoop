@@ -15,3 +15,27 @@ spark练习
 > project_04
 
 反爬项目
+
+> hbase_05
+
+Hbase相关联系下
+
+> flink_06
+
+Flink相关练习
+
+> DMPProject_07
+
+DMP项目
+
+
+
+## 数据文件说明
+
+> .dat .cvs
+
+测试的数据文件
+
+> part-r-00000~
+
+由项目完成测试后的数据文件

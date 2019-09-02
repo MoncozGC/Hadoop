@@ -7,3 +7,6 @@ out
 *.iml
 *.yaml
 /hadoop_01/hadoop_mapreduce/dependency-reduced-pom.xml
+
+# Hadoop #
+
