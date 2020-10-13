@@ -14,7 +14,7 @@
         <hadoopo.version>2.6.1</hadoopo.version>
         <kudu.version>1.7.0</kudu.version>
         <maven.version>3.5.1</maven.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
     </properties>
 
     <dependencies>
